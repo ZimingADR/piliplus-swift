@@ -132,28 +132,34 @@ struct PlayerScreen: View {
     // MARK: - 手势层
 
     private func gestureLayer(_ controller: PlaybackController) -> some View {
-        Color.clear
-            .contentShape(.rect)
-            .onTapGesture(count: 2, coordinateSpace: .local) { location in
-                handleDoubleTap(at: location, controller: controller)
-            }
-            .onTapGesture {
-                toggleControls()
-            }
-            .gesture(
-                DragGesture(minimumDistance: 12)
-                    .onChanged { value in
-                        handleDragChanged(value, controller: controller)
-                    }
-                    .onEnded { value in
-                        handleDragEnded(value, controller: controller)
-                    }
-            )
-            .ignoresSafeArea()
+        GeometryReader { proxy in
+            Color.clear
+                .contentShape(.rect)
+                .onTapGesture(count: 2, coordinateSpace: .local) { location in
+                    handleDoubleTap(at: location, size: proxy.size, controller: controller)
+                }
+                .onTapGesture {
+                    toggleControls()
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 12)
+                        .onChanged { value in
+                            handleDragChanged(value, size: proxy.size, controller: controller)
+                        }
+                        .onEnded { value in
+                            handleDragEnded(value, controller: controller)
+                        }
+                )
+        }
+        .ignoresSafeArea()
     }
 
-    private func handleDoubleTap(at location: CGPoint, controller: PlaybackController) {
-        let width = max(UIScreen.main.bounds.width, 1)
+    private func handleDoubleTap(
+        at location: CGPoint,
+        size: CGSize,
+        controller: PlaybackController
+    ) {
+        let width = max(size.width, 1)
         if location.x < width / 3 {
             controller.seek(by: -10)
             flashHUD(.init(kind: .seek, text: "« 10 秒", progress: 0))
@@ -171,7 +177,11 @@ struct PlayerScreen: View {
         scheduleHideControls()
     }
 
-    private func handleDragChanged(_ value: DragGesture.Value, controller: PlaybackController) {
+    private func handleDragChanged(
+        _ value: DragGesture.Value,
+        size: CGSize,
+        controller: PlaybackController
+    ) {
         if dragMode == .none {
             dragMode = abs(value.translation.width) > abs(value.translation.height)
                 ? .horizontal
@@ -182,11 +192,12 @@ struct PlayerScreen: View {
             scheduleHideControls()
         }
 
-        let screen = UIScreen.main.bounds
+        let width = max(size.width, 1)
+        let height = max(size.height, 1)
         switch dragMode {
         case .horizontal:
             guard controller.duration > 0 else { return }
-            let delta = Double(value.translation.width / max(screen.width, 1)) * 180
+            let delta = Double(value.translation.width / width) * 180
             let target = min(max(dragStartTime + delta, 0), controller.duration)
             horizontalPreview = target
             hud = HUD(
@@ -195,8 +206,8 @@ struct PlayerScreen: View {
                 progress: target / max(controller.duration, 1)
             )
         case .vertical:
-            let delta = Double(-value.translation.height / max(screen.height, 1))
-            if value.startLocation.x < screen.width / 2 {
+            let delta = Double(-value.translation.height / height)
+            if value.startLocation.x < width / 2 {
                 let brightness = min(max(dragStartBrightness + delta, 0.02), 1)
                 UIScreen.main.brightness = brightness
                 hud = HUD(
