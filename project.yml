@@ -75,7 +75,8 @@ targets:
     platform: iOS
     deploymentTarget: "27.1"
     sources:
-      - path: Tests/PiliPlusTests    dependencies:
+      - path: Tests/PiliPlusTests
+    dependencies:
       - target: PiliPlus
     settings:
       base:
