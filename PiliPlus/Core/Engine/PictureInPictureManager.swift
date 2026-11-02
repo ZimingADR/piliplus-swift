@@ -17,7 +17,6 @@ final class PictureInPictureManager {
 
     @ObservationIgnored private var player: AVPlayer?
     @ObservationIgnored private var controller: AVPictureInPictureController?
-    @ObservationIgnored private var timeObserver: Any?
 
     var isSupported: Bool {
         AVPictureInPictureController.isPictureInPictureSupported()
@@ -90,10 +89,6 @@ final class PictureInPictureManager {
     }
 
     private func teardownPlayer() {
-        if let timeObserver, let player {
-            player.removeTimeObserver(timeObserver)
-        }
-        timeObserver = nil
         player?.pause()
         player = nil
         playerLayer = nil

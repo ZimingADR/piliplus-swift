@@ -145,7 +145,9 @@ final class PlaybackHistoryStore {
             try context.save()
         } catch {
             // 历史记录失败不应打断播放，交由上层日志观察。
-            assertionFailure("保存播放历史失败：\(error)")
+            #if DEBUG
+            print("[History] 保存播放历史失败：\(error)")
+            #endif
         }
     }
 }

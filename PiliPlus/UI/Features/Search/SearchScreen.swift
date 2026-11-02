@@ -41,7 +41,8 @@ struct SearchScreen: View {
             await model?.loadTrendingIfNeeded()
         }
         .task(id: query) {
-            guard !query.isEmpty else {
+            // 仅在输入框聚焦时展示联想；点击联想后收起键盘不再弹回联想层。
+            guard isFieldFocused, !query.isEmpty else {
                 showsSuggestions = false
                 return
             }

@@ -1,10 +1,15 @@
 # PiliPlus · Swift
 
+[![CI](https://github.com/ZimingADR/piliplus-swift/actions/workflows/ci.yml/badge.svg)](https://github.com/ZimingADR/piliplus-swift/actions/workflows/ci.yml)
+
 PiliPlus 的纯 Swift 原生重写版（iOS / iPadOS），目标是在保留
 [PiliPlus](https://github.com/ZimingADR/PiliNara) Flutter 版功能语义的前提下，
 用 SwiftUI + Swift 6 + MPVKit 重新实现一套原生播放客户端。
 
 当前开发阶段：**Group 1 — 核心播放与发现体验闭环（MVP）**。
+
+> 无需登录即可刷首页推荐、搜索任意视频、播放 DASH 视频流、使用 BewlyCat
+> 音量平衡、开关弹幕、后台播放与画中画，并自动记住播放进度。
 
 ## Group 1 范围
 
