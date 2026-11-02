@@ -81,7 +81,7 @@
 | `webdav` | `Core/WebDAV/WebDAVSyncService.swift`、`WebDAVSyncScreen` | ✅ 历史 + 设置备份 / 恢复（Basic Auth） |
 | App Intents / Siri / 深链 | `AppIntents/PiliPlusIntents.swift`、`Core/DeepLink/DeepLinkRoute.swift` | ✅ 打开推荐/历史、搜索视频、`piliplus://` 路由 |
 | 桌面小组件 | `PiliPlusWidgets/` + `Shared/SharedRecentPlayback` | ✅ 小/中号「继续观看」，App Group 共享最近历史、点击续播 |
-| 灵动岛 Live Activity | — | ⏳ 需 ActivityKit + 锁屏配置 |
+| 灵动岛 Live Activity | `Shared/PlaybackActivityAttributes`、`Core/Activity/*`、`PiliPlusWidgets/PlaybackLiveActivity` | ✅ 锁屏卡片 + 灵动岛紧凑/展开/最小布局，实时进度 |
 | `whisper` / `dlna` / `ai_chat` / `log_table` | — | ⏳ |
 
 ## Liquid Glass 设计系统
