@@ -13,6 +13,7 @@ struct DynamicsScreen: View {
     @State private var articleTarget: ArticleTarget?
     @State private var repostTarget: DynamicItem?
     @State private var actionError: String?
+    @State private var showsCompose = false
 
     var body: some View {
         ZStack {
@@ -37,6 +38,11 @@ struct DynamicsScreen: View {
             await model?.loadInitial()
         }
         .sheet(isPresented: $showsLogin) { LoginScreen() }
+        .sheet(isPresented: $showsCompose) {
+            ComposeDynamicSheet {
+                Task { await model?.loadInitial(force: true) }
+            }
+        }
         .sheet(item: $repostTarget) { item in
             RepostSheet(item: item)
         }
@@ -69,6 +75,14 @@ struct DynamicsScreen: View {
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
+            GlassIconButton(systemName: "square.and.pencil") {
+                guard environment.account.isLoggedIn else {
+                    showsLogin = true
+                    return
+                }
+                showsCompose = true
+            }
+            .accessibilityLabel("发布动态")
             GlassIconButton(systemName: "arrow.clockwise") {
                 Task { await model?.loadInitial(force: true) }
             }
@@ -317,6 +331,95 @@ struct RepostSheet: View {
         errorMessage = nil
         do {
             try await environment.client.repostDynamic(id: item.id, content: text)
+            dismiss()
+        } catch {
+            errorMessage = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+        isSending = false
+    }
+}
+
+/// 发布纯文字动态。
+struct ComposeDynamicSheet: View {
+    var onPublished: () -> Void = {}
+
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var text = ""
+    @State private var isSending = false
+    @State private var errorMessage: String?
+    @State private var showsLogin = false
+
+    private var trimmed: String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("分享新鲜事…", text: $text, axis: .vertical)
+                        .lineLimit(4 ... 8)
+                } header: {
+                    Text("内容")
+                } footer: {
+                    HStack {
+                        Text("支持 #话题# 与 [表情码]")
+                        Spacer()
+                        Text("\(text.count)/2000")
+                            .monospacedDigit()
+                            .foregroundStyle(text.count > 2000 ? .red : .secondary)
+                    }
+                }
+
+                Section {
+                    Button {
+                        Task { await publish() }
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isSending {
+                                ProgressView().controlSize(.small)
+                            }
+                            Text("发布")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .disabled(isSending || trimmed.isEmpty || text.count > 2000)
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background { LiquidBackground() }
+            .navigationTitle("发布动态")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .sheet(isPresented: $showsLogin) { LoginScreen() }
+    }
+
+    private func publish() async {
+        guard !trimmed.isEmpty else { return }
+        guard environment.account.isLoggedIn else {
+            showsLogin = true
+            return
+        }
+
+        isSending = true
+        errorMessage = nil
+        do {
+            try await environment.client.publishDynamic(text: trimmed)
+            onPublished()
             dismiss()
         } catch {
             errorMessage = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription

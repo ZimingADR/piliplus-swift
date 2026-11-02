@@ -33,6 +33,16 @@ extension BiliClient {
         )
     }
 
+    func publishDynamic(text: String) async throws {
+        guard let payload = DynamicComposePayload(text: text).jsonString else {
+            throw BiliAPIError(code: -400, message: "动态内容编码失败")
+        }
+        try await performFormAction(
+            "/x/dynamic/feed/create/dyn",
+            form: ["dyn_req": payload]
+        )
+    }
+
     private func performFormAction(
         _ path: String,
         form: [String: String]
