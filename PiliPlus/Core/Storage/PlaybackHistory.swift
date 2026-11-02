@@ -125,6 +125,15 @@ final class PlaybackHistoryStore {
             context.insert(record)
         }
         save()
+
+        WidgetSnapshotWriter.update(
+            title: snapshot.title,
+            coverURLString: snapshot.coverURLString,
+            bvid: snapshot.bvid,
+            cid: snapshot.cid,
+            position: snapshot.position,
+            duration: snapshot.duration
+        )
     }
 
     func remove(_ record: PlaybackRecord) {

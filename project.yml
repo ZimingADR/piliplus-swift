@@ -45,15 +45,20 @@ targets:
       - path: PiliPlus
         excludes:
           - "Supporting/Info.plist"
+          - "Supporting/PiliPlus.entitlements"
+      - path: Shared
     dependencies:
       - package: MPVKit
         product: MPVKit
+      - target: PiliPlusWidgets
+        embed: true
     settings:
       base:
         PRODUCT_NAME: PiliPlus
         PRODUCT_BUNDLE_IDENTIFIER: com.zimingadr.piliplus
         INFOPLIST_FILE: PiliPlus/Supporting/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: PiliPlus/Supporting/PiliPlus.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SUPPORTS_MACCATALYST: NO
@@ -70,8 +75,7 @@ targets:
     platform: iOS
     deploymentTarget: "27.1"
     sources:
-      - path: Tests/PiliPlusTests
-    dependencies:
+      - path: Tests/PiliPlusTests    dependencies:
       - target: PiliPlus
     settings:
       base:
@@ -79,6 +83,27 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/PiliPlus.app/PiliPlus"
         BUNDLE_LOADER: "$(TEST_HOST)"
+
+  PiliPlusWidgets:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "27.1"
+    sources:
+      - path: PiliPlusWidgets
+        excludes:
+          - "Info.plist"
+          - "PiliPlusWidgets.entitlements"
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_NAME: PiliPlusWidgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.zimingadr.piliplus.widgets
+        INFOPLIST_FILE: PiliPlusWidgets/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: PiliPlusWidgets/PiliPlusWidgets.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SKIP_INSTALL: YES
+        APPLICATION_EXTENSION_API_ONLY: YES
 
 schemes:
   PiliPlus:
