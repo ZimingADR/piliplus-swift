@@ -463,6 +463,116 @@ actor BiliClient {
         return joined.isEmpty ? nil : joined
     }
 
+    // MARK: - 写操作
+
+    func postForm(
+        _ path: String,
+        form: [String: String],
+        host: Host = .api
+    ) async throws -> Data {
+        await bootstrapBuvidIfNeeded()
+        guard let url = URL(string: host.rawValue + path) else {
+            throw BiliAPIError(code: -5, message: "无法构建请求地址")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("https://www.bilibili.com/", forHTTPHeaderField: "Referer")
+        request.setValue("https://www.bilibili.com", forHTTPHeaderField: "Origin")
+        request.setValue("zh-CN,zh;q=0.9", forHTTPHeaderField: "Accept-Language")
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
+        request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
+        request.setValue(
+            "application/x-www-form-urlencoded; charset=UTF-8",
+            forHTTPHeaderField: "Content-Type"
+        )
+        request.httpBody = Data(Self.encodedQuery(form).utf8)
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse,
+              (200 ..< 300).contains(http.statusCode) else {
+            throw BiliAPIError(code: -8, message: "网络请求失败")
+        }
+        return data
+    }
+
+    private func performAction(_ path: String, form: [String: String]) async throws {
+        guard let csrf = csrfToken() else {
+            throw BiliAPIError(code: -101, message: "请先登录")
+        }
+        var body = form
+        body["csrf"] = csrf
+        let data = try await postForm(path, form: body)
+        let response = try decoder.decode(ActionResponse.self, from: data)
+        guard response.code == 0 else {
+            throw BiliAPIError(code: response.code, message: response.message ?? "操作失败")
+        }
+    }
+
+    func setVideoLike(aid: Int, isLiked: Bool) async throws {
+        try await performAction(
+            "/x/web-interface/archive/like",
+            form: ["aid": String(aid), "like": isLiked ? "1" : "2"]
+        )
+    }
+
+    func addVideoCoin(aid: Int, multiply: Int = 1, alsoLike: Bool = false) async throws {
+        try await performAction(
+            "/x/web-interface/coin/add",
+            form: [
+                "aid": String(aid),
+                "multiply": String(min(max(multiply, 1), 2)),
+                "select_like": alsoLike ? "1" : "0",
+            ]
+        )
+    }
+
+    func favoriteVideo(aid: Int, addMediaIDs: [Int], delMediaIDs: [Int] = []) async throws {
+        try await performAction(
+            "/x/v3/fav/resource/batch-deal",
+            form: [
+                "resources": "\(aid):2",
+                "add_media_ids": addMediaIDs.map(String.init).joined(separator: ","),
+                "del_media_ids": delMediaIDs.map(String.init).joined(separator: ","),
+            ]
+        )
+    }
+
+    func addToWatchLater(aid: Int, bvid: String) async throws {
+        try await performAction(
+            "/x/v2/history/toview/add",
+            form: ["aid": String(aid), "bvid": bvid]
+        )
+    }
+
+    func removeFromWatchLater(aids: [Int]) async throws {
+        try await performAction(
+            "/x/v2/history/toview/v2/dels",
+            form: ["resources": aids.map(String.init).joined(separator: ",")]
+        )
+    }
+
+    func modifyRelation(mid: Int, follow: Bool) async throws {
+        try await performAction(
+            "/x/relation/modify",
+            form: ["fid": String(mid), "act": follow ? "1" : "2", "re_src": "11"]
+        )
+    }
+
+    func addReply(aid: Int, message: String, root: Int64? = nil, parent: Int64? = nil) async throws {
+        var form: [String: String] = [
+            "oid": String(aid),
+            "type": "1",
+            "plat": "1",
+            "message": message,
+        ]
+        if let root { form["root"] = String(root) }
+        if let parent { form["parent"] = String(parent) }
+        try await performAction("/x/v2/reply/add", form: form)
+    }
+
     // MARK: - 请求基础设施
 
     private struct Envelope<T: Decodable>: Decodable {

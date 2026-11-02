@@ -149,6 +149,18 @@ struct MineScreen: View {
                 row(title: "稍后再看", subtitle: "跨设备同步的待看清单", systemImage: "text.badge.clock", tint: Glass.violet)
             }
             .buttonStyle(.plain)
+            Divider().padding(.leading, 56)
+
+            NavigationLink { FavoritesScreen() } label: {
+                row(title: "收藏夹", subtitle: "收藏的视频合集", systemImage: "star", tint: Glass.pink)
+            }
+            .buttonStyle(.plain)
+            Divider().padding(.leading, 56)
+
+            NavigationLink { FollowScreen() } label: {
+                row(title: "关注", subtitle: "我关注的 UP 主", systemImage: "person.2", tint: Glass.mint)
+            }
+            .buttonStyle(.plain)
         }
         .liquidGlass(cornerRadius: 22)
     }

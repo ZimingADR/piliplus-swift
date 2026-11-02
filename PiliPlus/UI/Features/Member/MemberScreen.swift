@@ -9,6 +9,9 @@ struct MemberScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: MemberViewModel?
+    @State private var isFollowing = false
+    @State private var showsLogin = false
+    @State private var actionMessage: String?
 
     var body: some View {
         ZStack {
@@ -44,6 +47,9 @@ struct MemberScreen: View {
             }
             await model?.loadIfNeeded()
         }
+        .sheet(isPresented: $showsLogin) {
+            LoginScreen()
+        }
     }
 
     private func profileHeader(_ model: MemberViewModel) -> some View {
@@ -74,9 +80,38 @@ struct MemberScreen: View {
                 divider
                 statItem(title: "投稿", value: "\(model.totalCount)")
             }
+
+            Button {
+                Task { await toggleFollow() }
+            } label: {
+                Text(isFollowing ? "已关注" : "关注")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(GlassButtonStyle(tint: isFollowing ? .gray : Glass.pink))
+
+            if let actionMessage {
+                Text(actionMessage)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(16)
         .liquidGlass(cornerRadius: 26, tint: Glass.pink)
+    }
+
+    private func toggleFollow() async {
+        guard environment.account.isLoggedIn else {
+            showsLogin = true
+            return
+        }
+        do {
+            try await environment.client.modifyRelation(mid: mid, follow: !isFollowing)
+            isFollowing.toggle()
+            actionMessage = isFollowing ? "已关注" : "已取消关注"
+        } catch {
+            actionMessage = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
     }
 
     private func orderPicker(_ model: MemberViewModel) -> some View {

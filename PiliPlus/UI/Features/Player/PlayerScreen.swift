@@ -16,10 +16,9 @@ struct PlayerScreen: View {
 
     @State private var controller: PlaybackController?
     @State private var showsControls = true
-    @State private var showsEpisodes = false
-    @State private var showsDanmakuSettings = false
-    @State private var showsSearchPanel = false
-    @State private var showsMember = false
+    @State private var activeSheet: PlayerSheet?
+    @State private var toast: String?
+    @State private var toastTask: Task<Void, Never>?
 
     @State private var isSeeking = false
     @State private var seekValue: Double = 0
@@ -38,6 +37,17 @@ struct PlayerScreen: View {
         case none
         case horizontal
         case vertical
+    }
+
+    private enum PlayerSheet: String, Identifiable {
+        case episodes
+        case danmaku
+        case search
+        case member
+        case comments
+        case login
+
+        var id: String { rawValue }
     }
 
     private struct HUD: Equatable {
@@ -72,6 +82,21 @@ struct PlayerScreen: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.92)))
                     .allowsHitTesting(false)
             }
+
+            if let toast {
+                VStack {
+                    Spacer()
+                    Text(toast)
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .glassPanel(cornerRadius: 20)
+                        .padding(.bottom, 128)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .allowsHitTesting(false)
+            }
         }
         .statusBarHidden(!showsControls)
         .persistentSystemOverlays(.hidden)
@@ -91,8 +116,108 @@ struct PlayerScreen: View {
         .onDisappear {
             hideControlsTask?.cancel()
             hudTask?.cancel()
+            toastTask?.cancel()
             controller?.stop()
             controller?.detachEngine()
+        }
+    }
+
+    private func actionMenu(_ controller: PlaybackController) -> some View {
+        Menu {
+            Button {
+                perform(controller) { await controller.toggleWatchLater() }
+            } label: {
+                Label(
+                    controller.isInWatchLater ? "移出稍后再看" : "稍后再看",
+                    systemImage: "clock"
+                )
+            }
+
+            Button {
+                perform(controller) { await controller.toggleLike() }
+            } label: {
+                Label(
+                    controller.isLiked ? "取消点赞" : "点赞",
+                    systemImage: controller.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup"
+                )
+            }
+
+            Button {
+                perform(controller) { await controller.addCoin() }
+            } label: {
+                Label("投币", systemImage: "bitcoinsign.circle")
+            }
+
+            Button {
+                perform(controller) { await controller.toggleFavorite() }
+            } label: {
+                Label(
+                    controller.isFavorited ? "取消收藏" : "收藏",
+                    systemImage: controller.isFavorited ? "star.fill" : "star"
+                )
+            }
+
+            if controller.ownerMid != nil {
+                Button {
+                    perform(controller) { await controller.toggleFollow() }
+                } label: {
+                    Label(
+                        controller.isFollowing ? "取消关注" : "关注 UP 主",
+                        systemImage: "person.badge.plus"
+                    )
+                }
+            }
+
+            Divider()
+
+            Button {
+                activeSheet = .comments
+            } label: {
+                Label("评论", systemImage: "text.bubble")
+            }
+
+            if controller.ownerMid != nil {
+                Button {
+                    activeSheet = .member
+                } label: {
+                    Label("UP 主空间", systemImage: "person.crop.rectangle")
+                }
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .playerChrome()
+        }
+        .accessibilityLabel("更多操作")
+    }
+
+    private func perform(
+        _ controller: PlaybackController,
+        action: @escaping () async -> PlaybackController.ActionOutcome
+    ) {
+        Task {
+            let outcome = await action()
+            switch outcome {
+            case .success(let message):
+                showToast(message)
+            case .needsLogin:
+                activeSheet = .login
+            case .failure(let message):
+                showToast(message)
+            }
+        }
+    }
+
+    private func showToast(_ message: String) {
+        withAnimation(.spring(duration: 0.28)) {
+            toast = message
+        }
+        toastTask?.cancel()
+        toastTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.2)) {
+                toast = nil
+            }
         }
     }
 
@@ -264,20 +389,26 @@ struct PlayerScreen: View {
                 failureOverlay(message, controller: controller)
             }
         }
-        .sheet(isPresented: $showsEpisodes) {
-            EpisodeSheet(controller: controller)
-        }
-        .sheet(isPresented: $showsDanmakuSettings) {
-            DanmakuSettingsSheet()
-        }
-        .sheet(isPresented: $showsSearchPanel) {
-            SearchPanelSheet()
-        }
-        .sheet(isPresented: $showsMember) {
-            if let mid = controller.ownerMid {
-                NavigationStack {
-                    MemberScreen(mid: mid, showsCloseButton: true)
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .episodes:
+                EpisodeSheet(controller: controller)
+            case .danmaku:
+                DanmakuSettingsSheet()
+            case .search:
+                SearchPanelSheet()
+            case .member:
+                if let mid = controller.ownerMid {
+                    NavigationStack {
+                        MemberScreen(mid: mid, showsCloseButton: true)
+                    }
                 }
+            case .comments:
+                if let aid = controller.detail?.aid {
+                    CommentsSheet(aid: aid, videoTitle: controller.title)
+                }
+            case .login:
+                LoginScreen()
             }
         }
     }
@@ -299,7 +430,7 @@ struct PlayerScreen: View {
                     .lineLimit(1)
                 Button {
                     if controller.ownerMid != nil {
-                        showsMember = true
+                        activeSheet = .member
                     }
                 } label: {
                     HStack(spacing: 4) {
@@ -321,7 +452,7 @@ struct PlayerScreen: View {
             Spacer(minLength: 0)
 
             Button {
-                showsSearchPanel = true
+                activeSheet = .search
             } label: {
                 Image(systemName: "magnifyingglass")
                     .playerChrome()
@@ -337,6 +468,7 @@ struct PlayerScreen: View {
             .accessibilityLabel(controller.danmakuVisible ? "关闭弹幕" : "打开弹幕")
 
             qualityMenu(controller)
+            actionMenu(controller)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -435,7 +567,7 @@ struct PlayerScreen: View {
 
                 if controller.pages.count > 1 {
                     Button {
-                        showsEpisodes = true
+                        activeSheet = .episodes
                     } label: {
                         Image(systemName: "list.bullet.rectangle")
                             .font(.title3)
@@ -455,7 +587,7 @@ struct PlayerScreen: View {
                 }
 
                 Button {
-                    showsDanmakuSettings = true
+                    activeSheet = .danmaku
                 } label: {
                     Image(systemName: "textformat")
                         .font(.title3)
@@ -562,7 +694,8 @@ struct PlayerScreen: View {
             client: environment.client,
             settings: environment.settings,
             history: environment.history,
-            audioSession: environment.audioSession
+            audioSession: environment.audioSession,
+            account: environment.account
         )
         self.controller = controller
 

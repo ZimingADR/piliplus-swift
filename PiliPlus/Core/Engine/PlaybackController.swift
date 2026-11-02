@@ -42,12 +42,27 @@ final class PlaybackController {
 
     var errorMessage: String?
 
+    // MARK: - 互动状态
+
+    enum ActionOutcome: Sendable {
+        case success(String)
+        case needsLogin
+        case failure(String)
+    }
+
+    private(set) var isLiked = false
+    private(set) var isFavorited = false
+    private(set) var isInWatchLater = false
+    private(set) var isFollowing = false
+    private(set) var coinCount = 0
+
     // MARK: - 依赖
 
     @ObservationIgnored private let client: BiliClient
     @ObservationIgnored private let settings: SettingsStore
     @ObservationIgnored private let history: PlaybackHistoryStore
     @ObservationIgnored private let audioSession: AudioSessionCoordinator
+    @ObservationIgnored private let account: AccountStore
     @ObservationIgnored private(set) var engine = MPVEngine()
     @ObservationIgnored let pictureInPicture = PictureInPictureManager()
 
@@ -72,12 +87,14 @@ final class PlaybackController {
         client: BiliClient,
         settings: SettingsStore,
         history: PlaybackHistoryStore,
-        audioSession: AudioSessionCoordinator
+        audioSession: AudioSessionCoordinator,
+        account: AccountStore
     ) {
         self.client = client
         self.settings = settings
         self.history = history
         self.audioSession = audioSession
+        self.account = account
         danmakuVisible = settings.danmakuEnabled
         selectedQuality = settings.defaultQuality
         configureRemoteCommands()
@@ -119,6 +136,86 @@ final class PlaybackController {
 
     var timeText: String {
         "\(VideoCard.formatDuration(Int(currentTime))) / \(VideoCard.formatDuration(Int(duration)))"
+    }
+
+    // MARK: - 互动
+
+    func toggleLike() async -> ActionOutcome {
+        guard account.isLoggedIn else { return .needsLogin }
+        guard let aid = detail?.aid else { return .failure("缺少视频信息") }
+        do {
+            try await client.setVideoLike(aid: aid, isLiked: !isLiked)
+            isLiked.toggle()
+            return .success(isLiked ? "已点赞" : "已取消点赞")
+        } catch {
+            return .failure(actionMessage(for: error))
+        }
+    }
+
+    func addCoin() async -> ActionOutcome {
+        guard account.isLoggedIn else { return .needsLogin }
+        guard let aid = detail?.aid else { return .failure("缺少视频信息") }
+        guard coinCount < 2 else { return .failure("最多投两枚硬币") }
+        do {
+            try await client.addVideoCoin(aid: aid, multiply: 1, alsoLike: !isLiked)
+            coinCount += 1
+            isLiked = true
+            return .success("已投币")
+        } catch {
+            return .failure(actionMessage(for: error))
+        }
+    }
+
+    func toggleFavorite() async -> ActionOutcome {
+        guard account.isLoggedIn, let mid = account.profile?.mid else { return .needsLogin }
+        guard let aid = detail?.aid else { return .failure("缺少视频信息") }
+        do {
+            let folders = try await client.favoriteFolders(mid: mid)
+            guard let folder = folders.first else {
+                return .failure("请先在网页端创建收藏夹")
+            }
+            try await client.favoriteVideo(
+                aid: aid,
+                addMediaIDs: isFavorited ? [] : [folder.id],
+                delMediaIDs: isFavorited ? [folder.id] : []
+            )
+            isFavorited.toggle()
+            return .success(isFavorited ? "已收藏到「\(folder.title)」" : "已取消收藏")
+        } catch {
+            return .failure(actionMessage(for: error))
+        }
+    }
+
+    func toggleWatchLater() async -> ActionOutcome {
+        guard account.isLoggedIn else { return .needsLogin }
+        guard let detail else { return .failure("缺少视频信息") }
+        do {
+            if isInWatchLater {
+                try await client.removeFromWatchLater(aids: [detail.aid])
+            } else {
+                try await client.addToWatchLater(aid: detail.aid, bvid: detail.bvid)
+            }
+            isInWatchLater.toggle()
+            return .success(isInWatchLater ? "已加入稍后再看" : "已移出稍后再看")
+        } catch {
+            return .failure(actionMessage(for: error))
+        }
+    }
+
+    func toggleFollow() async -> ActionOutcome {
+        guard account.isLoggedIn else { return .needsLogin }
+        guard let mid = ownerMid else { return .failure("缺少 UP 主信息") }
+        do {
+            try await client.modifyRelation(mid: mid, follow: !isFollowing)
+            isFollowing.toggle()
+            return .success(isFollowing ? "已关注" : "已取消关注")
+        } catch {
+            return .failure(actionMessage(for: error))
+        }
+    }
+
+    private func actionMessage(for error: any Error) -> String {
+        (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
     }
 
     // MARK: - 画中画

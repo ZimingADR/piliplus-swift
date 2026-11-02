@@ -115,6 +115,30 @@ struct DiscoverScreen: View {
             .buttonStyle(.plain)
 
             NavigationLink {
+                FavoritesScreen()
+            } label: {
+                DiscoverCard(
+                    title: "收藏夹",
+                    subtitle: "我的收藏",
+                    systemImage: "star.fill",
+                    tint: Glass.pink
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                FollowScreen()
+            } label: {
+                DiscoverCard(
+                    title: "关注",
+                    subtitle: "我关注的 UP 主",
+                    systemImage: "person.2.fill",
+                    tint: Glass.mint
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 SettingsScreen()
             } label: {
                 DiscoverCard(

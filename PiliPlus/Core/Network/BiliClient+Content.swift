@@ -134,3 +134,158 @@ extension BiliClient {
         )
     }
 }
+
+// MARK: - 收藏夹
+
+extension BiliClient {
+    func favoriteFolders(mid: Int) async throws -> [FavoriteFolder] {
+        let payload: FavoriteFoldersResponse.Payload = try await object(
+            FavoriteFoldersResponse.Payload.self,
+            path: "/x/v3/fav/folder/created/list-all",
+            query: ["up_mid": String(mid)],
+            signed: false
+        )
+        return (payload.list ?? []).compactMap { item in
+            guard let id = item.id else { return nil }
+            return FavoriteFolder(
+                id: id,
+                title: item.title ?? "收藏夹",
+                mediaCount: item.mediaCount?.value ?? 0,
+                coverURL: RecommendFeedResponse.Item.httpsURL(item.cover)
+            )
+        }
+    }
+
+    func favoritePage(mediaID: Int, page: Int) async throws -> FavoritePage {
+        let payload: FavoriteResourceResponse.Payload = try await object(
+            FavoriteResourceResponse.Payload.self,
+            path: "/x/v3/fav/resource/list",
+            query: [
+                "media_id": String(mediaID),
+                "pn": String(max(1, page)),
+                "ps": "20",
+                "platform": "web",
+                "order": "mtime",
+                "type": "0",
+                "tid": "0",
+            ],
+            signed: false
+        )
+
+        let videos: [VideoCard] = (payload.medias ?? []).compactMap { media in
+            guard let bvid = media.bvid, !bvid.isEmpty, media.type?.value == 2 else { return nil }
+            return VideoCard(
+                bvid: bvid,
+                aid: media.id?.value,
+                cid: nil,
+                title: (media.title ?? "已失效视频").removingHTMLTags,
+                coverURL: RecommendFeedResponse.Item.httpsURL(media.cover),
+                ownerName: media.upper?.name ?? "未知 UP 主",
+                ownerFaceURL: nil,
+                duration: media.duration?.value ?? 0,
+                viewCount: media.cntInfo?.play?.value ?? 0,
+                danmakuCount: media.cntInfo?.danmaku?.value ?? 0,
+                publishedAt: nil
+            )
+        }
+
+        return FavoritePage(
+            folderTitle: payload.info?.title ?? "收藏夹",
+            videos: videos,
+            page: page,
+            hasMore: payload.hasMore ?? false,
+            total: payload.info?.mediaCount?.value ?? 0
+        )
+    }
+}
+
+// MARK: - 关注
+
+extension BiliClient {
+    func followings(mid: Int, page: Int) async throws -> FollowPage {
+        let payload: FollowingsResponse.Payload = try await object(
+            FollowingsResponse.Payload.self,
+            path: "/x/relation/followings",
+            query: [
+                "vmid": String(mid),
+                "pn": String(max(1, page)),
+                "ps": "20",
+                "order": "desc",
+                "order_type": "attention",
+            ],
+            signed: false
+        )
+
+        let users = (payload.list ?? []).compactMap { item -> FollowUser? in
+            guard let mid = item.mid else { return nil }
+            return FollowUser(
+                mid: mid,
+                name: item.uname ?? "用户",
+                faceURL: RecommendFeedResponse.Item.httpsURL(item.face),
+                sign: item.sign ?? "",
+                isVip: (item.vip?.status?.value ?? 0) > 0
+            )
+        }
+
+        return FollowPage(users: users, page: page, total: payload.total?.value ?? 0)
+    }
+}
+
+// MARK: - 评论
+
+extension BiliClient {
+    func comments(aid: Int, offset: String = "") async throws -> CommentPage {
+        let pagination = offset.isEmpty
+            ? "{\"offset\":\"\"}"
+            : "{\"offset\":\"\(offset)\"}"
+
+        let payload: CommentsResponse.Payload = try await object(
+            CommentsResponse.Payload.self,
+            path: "/x/v2/reply/wbi/main",
+            query: [
+                "oid": String(aid),
+                "type": "1",
+                "mode": "3",
+                "plat": "1",
+                "web_location": "1315871",
+                "pagination_str": pagination,
+            ],
+            signed: true
+        )
+
+        let uploaderMid = payload.upper?.mid
+        var comments: [VideoComment] = []
+
+        func map(_ reply: CommentsResponse.Payload.Reply) -> VideoComment? {
+            guard let rpid = reply.rpid?.value else { return nil }
+            let message = reply.content?.message ?? ""
+            guard !message.isEmpty else { return nil }
+            return VideoComment(
+                id: Int64(rpid),
+                userName: reply.member?.uname ?? "用户",
+                avatarURL: RecommendFeedResponse.Item.httpsURL(reply.member?.avatar),
+                level: reply.member?.levelInfo?.currentLevel?.value ?? 0,
+                message: message,
+                likeCount: reply.like?.value ?? 0,
+                replyCount: reply.rcount?.value ?? 0,
+                createdAt: reply.ctime.map { Date(timeIntervalSince1970: TimeInterval($0.value)) },
+                isUp: uploaderMid != nil && reply.mid?.value == uploaderMid
+            )
+        }
+
+        if offset.isEmpty {
+            comments.append(contentsOf: (payload.topReplies ?? []).compactMap(map))
+        }
+        comments.append(contentsOf: (payload.replies ?? []).compactMap(map))
+
+        var seen = Set<Int64>()
+        comments = comments.filter { seen.insert($0.id).inserted }
+
+        return CommentPage(
+            comments: comments,
+            nextOffset: payload.cursor?.paginationReply?.nextOffset ?? "",
+            isEnd: payload.cursor?.isEnd ?? true,
+            total: payload.cursor?.allCount?.value ?? comments.count
+        )
+    }
+}
