@@ -76,7 +76,8 @@
 | `live` | `UI/Features/Live/LiveScreen.swift` | ✅ 推荐列表分页 |
 | `live_room` | `LiveRoomScreen` + MPV | ✅ FLV/HLS 直播流 |
 | `live_search` | `LiveSearchSheet` + WBI search_type=live | ✅ 关键词搜索直播间 |
-| `live_area` / `live_follow` | — | ⏳ |
+| `live_area` | `LiveAreaScreen` + `/room/v1/Area/getList` | ✅ 一级分区 + 分区直播间 |
+| `live_follow` | — | ⏳ |
 | `audio` / `music` | — | ⏳ |
 | `subscription` / `save_panel` | — | ⏳ |
 
