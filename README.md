@@ -8,10 +8,10 @@ PiliPlus 的纯 Swift 原生重写版（iOS / iPadOS），目标是在保留
 用 SwiftUI + Swift 6 + MPVKit 重新实现一套原生播放客户端。
 
 当前进度：**Group 1 已交付；Group 2 / 3 核心链路、Group 4 动态/专栏、
-Group 5 番剧/直播、Group 6 下载/SponsorBlock 已可用**（扫码登录、收藏夹、关注、
-评论、点赞投币收藏、稍后再看、热门、排行榜、UP 主空间、动态信息流与专栏阅读、
-番剧索引/季详情/选集播放、直播列表与直播间、离线下载与广告片段跳过），
-界面全面升级为 **Liquid Glass** 风格。
+Group 5 番剧/直播、Group 6 下载/WebDAV/SponsorBlock 已可用**（扫码登录、收藏夹、
+关注、评论、点赞投币收藏、稍后再看、热门、排行榜、UP 主空间、动态信息流与专栏阅读、
+番剧索引/季详情/选集播放、直播列表与直播间、离线下载、WebDAV 历史/设置同步、
+广告片段跳过与仅音频模式），界面全面升级为 **Liquid Glass** 风格。
 完整进度见 [迁移路线图](docs/roadmap.md)。
 
 > 无需登录即可刷首页推荐、搜索任意视频、播放 DASH 视频流、使用 BewlyCat

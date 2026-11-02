@@ -12,7 +12,7 @@
 | Group 3 | UP 主空间、榜单、稍后再看、热门 | 🚧 热门 / 排行 / 稍后 / UP 主投稿已可用 |
 | Group 4 | 动态、专栏、话题 | 🚧 动态信息流 / 详情 / 专栏阅读已可用 |
 | Group 5 | 番剧、直播、音乐 | 🚧 番剧索引/季详情/播放、直播列表/直播间已可用 |
-| Group 6 | 下载、WebDAV、SponsorBlock、小组件 | 🚧 离线下载 / SponsorBlock / 仅音频已可用 |
+| Group 6 | 下载、WebDAV、SponsorBlock、小组件 | 🚧 离线下载 / WebDAV / SponsorBlock / 仅音频已可用 |
 
 ## Group 2 明细
 
@@ -78,7 +78,7 @@
 | `download` | `Core/Download/DownloadManager.swift`、`UI/Features/Downloads/*` | ✅ DASH 双轨下载 / 离线播放 / 删除 |
 | `sponsor_block` | `Core/SponsorBlock/SponsorBlockService.swift` + 播放器自动跳过 | ✅ 支持片头/片尾/赞助/求三连等分类 |
 | 仅音频（听视频） | 播放器菜单 + `vid=no` | ✅ 封面占位 + 偏好持久化 |
-| `webdav` | — | ⏳ 下一轮 |
+| `webdav` | `Core/WebDAV/WebDAVSyncService.swift`、`WebDAVSyncScreen` | ✅ 历史 + 设置备份 / 恢复（Basic Auth） |
 | 灵动岛 / 小组件 / App Intents | — | ⏳ |
 | `whisper` / `dlna` / `ai_chat` / `log_table` | — | ⏳ |
 
