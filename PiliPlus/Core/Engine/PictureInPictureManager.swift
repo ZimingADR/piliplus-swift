@@ -1,6 +1,7 @@
 import AVFoundation
 import AVKit
 import Observation
+import SwiftUI
 import UIKit
 
 /// 画中画协调器。
