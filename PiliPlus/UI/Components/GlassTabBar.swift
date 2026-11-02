@@ -15,7 +15,7 @@ struct GlassTabBar: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
-        .glassPanel(cornerRadius: 28)
+        .glassEffect(.regular.interactive(), in: .capsule)
         .accessibilityElement(children: .contain)
     }
 

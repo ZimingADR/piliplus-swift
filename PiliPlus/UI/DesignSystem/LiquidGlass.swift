@@ -63,33 +63,27 @@ struct GlassPanelModifier: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         content
-            .background {
-                shape
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        shape.fill(tint.opacity(colorScheme == .dark ? 0.20 : 0.12))
-                    }
-            }
+            .glassEffect(
+                .regular.tint(tint.opacity(colorScheme == .dark ? 0.28 : 0.16)),
+                in: .rect(cornerRadius: cornerRadius)
+            )
             .overlay {
-                shape
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .strokeBorder(
                         LinearGradient(
                             colors: [
-                                .white.opacity(colorScheme == .dark ? 0.32 : 0.85),
-                                .white.opacity(colorScheme == .dark ? 0.06 : 0.28),
-                                .white.opacity(0.02),
+                                .white.opacity(colorScheme == .dark ? 0.30 : 0.65),
+                                .white.opacity(0.04),
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        lineWidth: 1
+                        lineWidth: 0.8
                     )
             }
-            .clipShape(shape)
             .shadow(
-                color: .black.opacity((colorScheme == .dark ? 0.42 : 0.10) * elevation),
+                color: .black.opacity((colorScheme == .dark ? 0.40 : 0.10) * elevation),
                 radius: 22 * elevation,
                 y: 10 * elevation
             )
@@ -128,26 +122,10 @@ struct GlassButtonStyle: ButtonStyle {
         configuration.label
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .fill(tint.opacity(0.18))
-                    }
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(0.7), .white.opacity(0.08)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 0.8
-                    )
-            }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .glassEffect(
+                .regular.tint(tint.opacity(0.22)).interactive(),
+                in: .rect(cornerRadius: cornerRadius)
+            )
             .scaleEffect(configuration.isPressed ? 0.965 : 1)
             .opacity(configuration.isPressed ? 0.9 : 1)
             .animation(.spring(duration: 0.22), value: configuration.isPressed)
@@ -165,10 +143,7 @@ struct GlassIconButton: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(tint)
                 .frame(width: 38, height: 38)
-                .background(.ultraThinMaterial, in: .circle)
-                .overlay {
-                    Circle().strokeBorder(.white.opacity(0.35), lineWidth: 0.8)
-                }
+                .glassEffect(.regular.interactive(), in: .circle)
         }
         .buttonStyle(.plain)
     }
@@ -194,13 +169,10 @@ struct GlassChip: View {
         .foregroundStyle(isSelected ? .white : .secondary)
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background {
-            Capsule()
-                .fill(isSelected ? AnyShapeStyle(tint) : AnyShapeStyle(.ultraThinMaterial))
-        }
-        .overlay {
-            Capsule().strokeBorder(.white.opacity(isSelected ? 0.35 : 0.25), lineWidth: 0.8)
-        }
+        .glassEffect(
+            isSelected ? .regular.tint(tint).interactive() : .regular.interactive(),
+            in: .capsule
+        )
     }
 }
 
@@ -239,10 +211,7 @@ struct GlassSegmentedControl<Value: Hashable>: View {
             }
         }
         .padding(4)
-        .background(.ultraThinMaterial, in: .capsule)
-        .overlay {
-            Capsule().strokeBorder(.white.opacity(0.28), lineWidth: 0.8)
-        }
+        .glassEffect(.regular, in: .capsule)
     }
 }
 

@@ -15,6 +15,14 @@ PiliPlus 的纯 Swift 原生重写版（iOS / iPadOS），目标是在保留
 > 音量平衡、开关弹幕、后台播放与画中画，并自动记住播放进度；登录后解锁
 > 收藏、关注、评论与稍后再看。
 
+## 系统要求
+
+- **iOS / iPadOS 27.1 及以上**（`IPHONEOS_DEPLOYMENT_TARGET = 27.1`）。
+- 使用 **iOS 27.1 SDK**（Xcode 27.1）构建；CI 运行在 GitHub Actions 的
+  `xcode-27` 预览镜像上，并显式 `xcode-select` 到 `Xcode_27.1.app`。
+- 界面基于系统原生 **Liquid Glass**（`glassEffect` / `GlassEffectContainer`），
+  不再使用材质模拟。
+
 ## 安装（SideStore / AltStore）
 
 订阅源（SideStore / AltStore / LiveContainer 通用）：

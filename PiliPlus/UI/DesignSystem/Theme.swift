@@ -20,11 +20,7 @@ enum Theme {
 extension View {
     /// 悬浮玻璃面板：用于底部 TabBar、播放器控制条、搜索浮层。
     func glassPanel(cornerRadius: CGFloat = 24) -> some View {
-        background(.ultraThinMaterial, in: .rect(cornerRadius: cornerRadius))
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(.white.opacity(0.14), lineWidth: 1)
-            }
+        glassEffect(.regular, in: .rect(cornerRadius: cornerRadius))
             .shadow(color: .black.opacity(0.16), radius: 18, y: 8)
     }
 

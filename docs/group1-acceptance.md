@@ -43,8 +43,8 @@ CI（`.github/workflows/ci.yml`）在 macOS runner 上执行：
 ## 4. 已知限制
 
 - **画中画分辨率**：受 AVKit 限制使用 `platform=html5` 合流流，最高 720P。
-- **iOS 26 Liquid Glass**：为兼容最低 iOS 18，TabBar 使用 `ultraThinMaterial`
-  自绘玻璃，而非 `glassEffect`（部署目标提升后可一行切换）。
+- **iOS 27.1 Liquid Glass**：部署目标为 iOS 27.1，TabBar、卡片与控件直接使用
+  系统 `glassEffect`，与 iOS 26/27 的原生玻璃表现一致；旧系统不再支持。
 - **登录态**：Group 1 全匿名，1080P 为服务端匿名上限；4K/HDR 需 Group 2 登录。
 - **弹幕高级类型**：BAS / 代码 / 逆向弹幕按设计丢弃，仅渲染滚动、顶部、底部。
 

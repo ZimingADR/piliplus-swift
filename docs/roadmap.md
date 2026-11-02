@@ -51,7 +51,7 @@
 | 能力 | 实现 |
 | :--- | :--- |
 | 光晕背景 | `LiquidBackground`（双色低饱和渐变 + 模糊） |
-| 玻璃卡片 | `.liquidGlass(cornerRadius:tint:elevation:)`，材质 + 镜面描边 + 悬浮阴影 |
+| 玻璃卡片 | `.liquidGlass(...)` → 原生 `.glassEffect(.regular.tint(_:), in: .rect(...))` + 镜面描边 + 悬浮阴影 |
 | 玻璃按钮 | `GlassButtonStyle`、`GlassIconButton`、`GlassChip` |
 | 玻璃分段控件 | `GlassSegmentedControl`（matchedGeometry 弹簧切换） |
 | 玻璃 TabBar | `GlassTabBar`（悬浮胶囊 + 选中胶囊） |

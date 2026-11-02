@@ -91,8 +91,11 @@ MPV 渲染到 `CAMetalLayer`，无法直接接入 AVKit。Group 1 的方案是�
 ## 7. 构建与 CI
 
 - `project.yml`（XcodeGen）是工程唯一事实来源，`.xcodeproj` 不提交。
-- GitHub Actions（macOS）负责：生成工程 → 解析 MPVKit 二进制 → 模拟器编译 →
-  在 iPhone 模拟器上跑 Swift Testing。Windows 本地不承担 Swift 编译。
+- GitHub Actions 的 `xcode-27` 镜像负责：选择 **Xcode 27.1 / iOS 27.1 SDK** →
+  生成工程 → 解析 MPVKit 二进制 → 模拟器编译 → 在 iOS 27.1 模拟器上跑 Swift Testing。
+  Windows 本地不承担 Swift 编译。
+- 部署目标为 **iOS 27.1**，界面直接使用系统 Liquid Glass API
+  （`.glassEffect`、`GlassEffectContainer`、玻璃按钮），不再用 `ultraThinMaterial` 模拟。
 - MPVKit 以 SPM 二进制目标引入（LGPL 版本），缓存 `SourcePackages` 与 SwiftPM 缓存。
 
 ## 8. 错误处理与降级
