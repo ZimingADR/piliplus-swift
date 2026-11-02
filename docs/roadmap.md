@@ -75,7 +75,8 @@
 | `pgc_review` | — | ⏳ |
 | `live` | `UI/Features/Live/LiveScreen.swift` | ✅ 推荐列表分页 |
 | `live_room` | `LiveRoomScreen` + MPV | ✅ FLV/HLS 直播流 |
-| `live_area` / `live_search` / `live_follow` | — | ⏳ |
+| `live_search` | `LiveSearchSheet` + WBI search_type=live | ✅ 关键词搜索直播间 |
+| `live_area` / `live_follow` | — | ⏳ |
 | `audio` / `music` | — | ⏳ |
 | `subscription` / `save_panel` | — | ⏳ |
 
