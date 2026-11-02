@@ -99,6 +99,8 @@ struct FollowUser: Identifiable, Sendable, Equatable {
     let faceURL: URL?
     let sign: String
     let isVip: Bool
+
+    var id: Int { mid }
 }
 
 struct FollowPage: Sendable {
