@@ -16,6 +16,7 @@ final class AppEnvironment {
     let history: PlaybackHistoryStore
     let audioSession: AudioSessionCoordinator
     let account: AccountStore
+    let downloads: DownloadManager
     let modelContainer: ModelContainer
 
     /// 由任意列表发起、`RootView` 统一呈现的全屏播放请求。
@@ -33,6 +34,7 @@ final class AppEnvironment {
         self.audioSession = audioSession
         self.history = PlaybackHistoryStore(context: modelContainer.mainContext)
         self.account = AccountStore(client: client)
+        self.downloads = DownloadManager(client: client)
     }
 
     static func live() -> AppEnvironment {

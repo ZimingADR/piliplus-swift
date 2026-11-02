@@ -33,6 +33,7 @@ struct SettingsScreen: View {
                 Toggle("后台播放", isOn: $settings.backgroundPlaybackEnabled)
                 Toggle("自动画中画", isOn: $settings.pictureInPictureEnabled)
                 Toggle("断点续播", isOn: $settings.resumePlaybackEnabled)
+                Toggle("自动跳过赞助片段", isOn: $settings.sponsorBlockEnabled)
             }
 
             Section {

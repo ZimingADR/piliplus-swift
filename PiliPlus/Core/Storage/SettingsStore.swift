@@ -35,6 +35,8 @@ final class SettingsStore {
         static let backgroundPlayback = "settings.backgroundPlayback"
         static let pictureInPicture = "settings.pictureInPicture"
         static let resumePlayback = "settings.resumePlayback"
+        static let sponsorBlock = "settings.sponsorBlock"
+        static let audioOnly = "settings.audioOnly"
         static let danmakuEnabled = "settings.danmakuEnabled"
         static let danmakuFontScale = "settings.danmakuFontScale"
         static let danmakuOpacity = "settings.danmakuOpacity"
@@ -69,6 +71,16 @@ final class SettingsStore {
 
     var resumePlaybackEnabled: Bool {
         didSet { defaults.set(resumePlaybackEnabled, forKey: Key.resumePlayback) }
+    }
+
+    /// 自动跳过 SponsorBlock 赞助/片头片尾片段。
+    var sponsorBlockEnabled: Bool {
+        didSet { defaults.set(sponsorBlockEnabled, forKey: Key.sponsorBlock) }
+    }
+
+    /// 仅音频播放（听视频）。
+    var audioOnlyEnabled: Bool {
+        didSet { defaults.set(audioOnlyEnabled, forKey: Key.audioOnly) }
     }
 
     // MARK: - 弹幕
@@ -123,6 +135,8 @@ final class SettingsStore {
         backgroundPlaybackEnabled = defaults.bool(forKey: Key.backgroundPlayback, default: true)
         pictureInPictureEnabled = defaults.bool(forKey: Key.pictureInPicture, default: true)
         resumePlaybackEnabled = defaults.bool(forKey: Key.resumePlayback, default: true)
+        sponsorBlockEnabled = defaults.bool(forKey: Key.sponsorBlock, default: true)
+        audioOnlyEnabled = defaults.bool(forKey: Key.audioOnly, default: false)
 
         danmakuEnabled = defaults.bool(forKey: Key.danmakuEnabled, default: true)
         danmakuFontScale = defaults.double(forKey: Key.danmakuFontScale, default: 1.0)

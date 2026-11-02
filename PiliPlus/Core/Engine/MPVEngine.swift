@@ -122,6 +122,12 @@ final class MPVEngine {
         setPaused(!isPaused)
     }
 
+    /// 仅音频模式：关闭视频轨输出。
+    func setAudioOnly(_ enabled: Bool) {
+        guard let pointer = context?.pointer else { return }
+        mpv_set_property_string(pointer, "vid", enabled ? "no" : "auto")
+    }
+
     func seek(to seconds: Double) {
         let clamped = max(0, seconds)
         command("seek \(String(format: "%.3f", clamped)) absolute+exact")

@@ -55,6 +55,13 @@ final class PlaybackController {
     private(set) var isInWatchLater = false
     private(set) var isFollowing = false
     private(set) var coinCount = 0
+    private(set) var isAudioOnly = false
+    private(set) var actionToast: String?
+
+    @ObservationIgnored private var sponsorSegments: [SponsorSegment] = []
+    @ObservationIgnored private var sponsorTask: Task<Void, Never>?
+    @ObservationIgnored private var skippedSponsorSegments = Set<String>()
+    @ObservationIgnored private var toastTask: Task<Void, Never>?
 
     // MARK: - 依赖
 
@@ -218,6 +225,53 @@ final class PlaybackController {
             return .success(isFollowing ? "已关注" : "已取消关注")
         } catch {
             return .failure(actionMessage(for: error))
+        }
+    }
+
+    // MARK: - 音频模式 / SponsorBlock
+
+    @discardableResult
+    func toggleAudioOnly() -> Bool {
+        isAudioOnly.toggle()
+        engine.setAudioOnly(isAudioOnly)
+        settings.audioOnlyEnabled = isAudioOnly
+        showActionToast(isAudioOnly ? "已切换为仅音频" : "已恢复视频")
+        return isAudioOnly
+    }
+
+    private func loadSponsorSegments(bvid: String) {
+        sponsorTask?.cancel()
+        sponsorSegments = []
+        skippedSponsorSegments = []
+        guard settings.sponsorBlockEnabled, !bvid.isEmpty else { return }
+
+        sponsorTask = Task { [weak self] in
+            let segments = (try? await SponsorBlockService.segments(bvid: bvid)) ?? []
+            guard !Task.isCancelled else { return }
+            self?.sponsorSegments = segments
+        }
+    }
+
+    private func skipSponsorIfNeeded(at time: Double) {
+        guard settings.sponsorBlockEnabled, !sponsorSegments.isEmpty else { return }
+        for segment in sponsorSegments
+        where time >= segment.start && time < segment.end - 0.3 {
+            guard !skippedSponsorSegments.contains(segment.id) else { continue }
+            skippedSponsorSegments.insert(segment.id)
+            engine.seek(to: segment.end)
+            currentTime = segment.end
+            showActionToast("已跳过\(segment.categoryTitle)")
+            return
+        }
+    }
+
+    private func showActionToast(_ message: String) {
+        actionToast = message
+        toastTask?.cancel()
+        toastTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            self?.actionToast = nil
         }
     }
 
@@ -526,6 +580,55 @@ final class PlaybackController {
             danmakuPID = detail.aid
         }
         loadDanmaku(cid: page.cid, pid: danmakuPID, duration: result.duration)
+        loadSponsorSegments(bvid: detail.bvid)
+    }
+
+    /// 离线播放：直接使用本地 DASH 双轨文件，无需网络取流。
+    func startOffline(item: DownloadItem, videoURL: URL, audioURL: URL?) {
+        resetState()
+        loadState = .loading
+        sourceCard = nil
+        pgcContext = nil
+
+        let page = VideoDetail.Page(
+            cid: item.cid,
+            page: 1,
+            part: item.title,
+            duration: FlexInt(Int(item.duration))
+        )
+        detail = VideoDetail(
+            bvid: item.bvid,
+            aid: item.aid,
+            cid: item.cid,
+            title: item.title,
+            pic: item.coverURLString,
+            desc: "离线下载",
+            duration: FlexInt(Int(item.duration)),
+            pubdate: nil,
+            tname: "离线",
+            owner: VideoDetail.Owner(mid: nil, name: item.ownerName, face: nil),
+            stat: nil,
+            pages: [page]
+        )
+        currentPageIndex = 0
+
+        let result = PlayURLResult(
+            quality: item.quality,
+            duration: item.duration,
+            videoTracks: [],
+            audioTracks: [],
+            availableQualities: [],
+            measurement: nil,
+            muxedURL: nil
+        )
+        pendingStream = PendingStream(
+            videoURL: videoURL,
+            audioURL: audioURL,
+            startAt: 0,
+            playURL: result
+        )
+        didPreparePlayback = false
+        preparePlaybackIfNeeded()
     }
 
     private func preparePlaybackIfNeeded() {
@@ -539,6 +642,8 @@ final class PlaybackController {
             measurement: measurement
         )
         engine.setAudioFilter(filter)
+        isAudioOnly = settings.audioOnlyEnabled
+        engine.setAudioOnly(isAudioOnly)
         engine.load(videoURL: stream.videoURL)
         if let audioURL = stream.audioURL {
             engine.attachAudioTrack(audioURL)
@@ -592,6 +697,7 @@ final class PlaybackController {
         if time.isFinite {
             currentTime = time
         }
+        skipSponsorIfNeeded(at: currentTime)
         let engineDuration = engine.duration
         if engineDuration > 0 {
             duration = engineDuration
@@ -731,6 +837,8 @@ final class PlaybackController {
     private func resetState() {
         pollTask?.cancel()
         danmakuTask?.cancel()
+        sponsorTask?.cancel()
+        toastTask?.cancel()
         engine.stop()
         pgcContext = nil
         pendingStream = nil
@@ -740,6 +848,9 @@ final class PlaybackController {
         errorMessage = nil
         danmakuItems = []
         availableQualities = []
+        sponsorSegments = []
+        skippedSponsorSegments = []
+        actionToast = nil
         currentTime = 0
         duration = 0
         isPlaying = false

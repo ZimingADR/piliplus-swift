@@ -45,6 +45,7 @@ struct PlayerRequest: Identifiable, Equatable {
     let card: VideoCard?
     let pgcSeason: PGCSeason?
     let pgcEpisode: PGCEpisode?
+    let offlineItem: DownloadItem?
 
     init(card: VideoCard) {
         bvid = card.bvid
@@ -53,6 +54,7 @@ struct PlayerRequest: Identifiable, Equatable {
         self.card = card
         pgcSeason = nil
         pgcEpisode = nil
+        offlineItem = nil
     }
 
     init(bvid: String, aid: Int?, cid: Int?) {
@@ -62,6 +64,7 @@ struct PlayerRequest: Identifiable, Equatable {
         card = nil
         pgcSeason = nil
         pgcEpisode = nil
+        offlineItem = nil
     }
 
     init(pgcSeason: PGCSeason, episode: PGCEpisode) {
@@ -71,6 +74,17 @@ struct PlayerRequest: Identifiable, Equatable {
         card = nil
         self.pgcSeason = pgcSeason
         pgcEpisode = episode
+        offlineItem = nil
+    }
+
+    init(downloaded item: DownloadItem) {
+        bvid = item.bvid
+        aid = item.aid
+        cid = item.cid
+        card = nil
+        pgcSeason = nil
+        pgcEpisode = nil
+        offlineItem = item
     }
 
     static func == (lhs: PlayerRequest, rhs: PlayerRequest) -> Bool {

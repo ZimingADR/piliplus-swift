@@ -106,6 +106,11 @@ struct PlayerScreen: View {
                 controller?.setDanmakuVisible(newValue)
             }
         }
+        .onChange(of: controller?.actionToast) { _, newValue in
+            if let newValue, !newValue.isEmpty {
+                showToast(newValue)
+            }
+        }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background,
                   environment.settings.pictureInPictureEnabled,
@@ -171,6 +176,21 @@ struct PlayerScreen: View {
             Divider()
 
             Button {
+                controller.toggleAudioOnly()
+            } label: {
+                Label(
+                    controller.isAudioOnly ? "恢复视频" : "仅音频",
+                    systemImage: controller.isAudioOnly ? "tv" : "waveform"
+                )
+            }
+
+            Button {
+                downloadCurrent()
+            } label: {
+                Label("离线下载", systemImage: "arrow.down.circle")
+            }
+
+            Button {
                 activeSheet = .comments
             } label: {
                 Label("评论", systemImage: "text.bubble")
@@ -203,6 +223,33 @@ struct PlayerScreen: View {
                 activeSheet = .login
             case .failure(let message):
                 showToast(message)
+            }
+        }
+    }
+
+    private func downloadCurrent() {
+        guard let controller,
+              let detail = controller.detail,
+              let page = controller.currentPage else {
+            showToast("当前视频不支持下载")
+            return
+        }
+        if environment.downloads.isDownloaded(bvid: detail.bvid, cid: page.cid) {
+            showToast("该视频已下载")
+            return
+        }
+
+        let quality = controller.selectedQuality
+        Task {
+            do {
+                _ = try await environment.downloads.enqueue(
+                    detail: detail,
+                    page: page,
+                    quality: quality
+                )
+                showToast("已保存到离线下载")
+            } catch {
+                showToast((error as? any LocalizedError)?.errorDescription ?? error.localizedDescription)
             }
         }
     }
@@ -251,6 +298,19 @@ struct PlayerScreen: View {
                     .frame(width: 2, height: 2)
                     .opacity(0.01)
                     .allowsHitTesting(false)
+            }
+
+            if controller.isAudioOnly {
+                VStack(spacing: 12) {
+                    RemoteImage(url: controller.coverURL)
+                        .frame(width: 220, height: 124)
+                        .clipShape(.rect(cornerRadius: 16, style: .continuous))
+                        .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
+                    Label("仅音频播放", systemImage: "waveform")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+                .allowsHitTesting(false)
             }
         }
     }
@@ -699,7 +759,13 @@ struct PlayerScreen: View {
         )
         self.controller = controller
 
-        if let season = request.pgcSeason, let episode = request.pgcEpisode {
+        if let downloaded = request.offlineItem {
+            controller.startOffline(
+                item: downloaded,
+                videoURL: environment.downloads.videoURL(for: downloaded),
+                audioURL: environment.downloads.audioURL(for: downloaded)
+            )
+        } else if let season = request.pgcSeason, let episode = request.pgcEpisode {
             controller.startPGC(season: season, episode: episode)
         } else if let card = request.card {
             controller.start(card: card)

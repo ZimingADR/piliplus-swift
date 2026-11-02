@@ -161,6 +161,12 @@ struct MineScreen: View {
                 row(title: "关注", subtitle: "我关注的 UP 主", systemImage: "person.2", tint: Glass.mint)
             }
             .buttonStyle(.plain)
+            Divider().padding(.leading, 56)
+
+            NavigationLink { DownloadsScreen() } label: {
+                row(title: "离线下载", subtitle: "本地 DASH 双轨视频", systemImage: "arrow.down.circle", tint: Glass.blue)
+            }
+            .buttonStyle(.plain)
         }
         .liquidGlass(cornerRadius: 22)
     }
