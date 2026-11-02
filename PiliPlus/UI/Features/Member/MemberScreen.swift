@@ -54,35 +54,62 @@ struct MemberScreen: View {
     }
 
     private var memberEntry: some View {
-        NavigationLink {
-            MemberFavoritesScreen(mid: mid)
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "star.square.on.square.fill")
-                    .foregroundStyle(Glass.pink)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("TA 的收藏夹")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                    Text("公开收藏夹")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+        HStack(spacing: 10) {
+            NavigationLink {
+                MemberFavoritesScreen(mid: mid)
+            } label: {
+                entryCard(
+                    title: "TA 的收藏夹",
+                    subtitle: "公开收藏",
+                    systemImage: "star.square.on.square.fill",
+                    tint: Glass.pink
+                )
             }
-            .padding(12)
-            .liquidGlass(cornerRadius: 16, elevation: 0.6)
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                MemberArticlesScreen(mid: mid)
+            } label: {
+                entryCard(
+                    title: "TA 的专栏",
+                    subtitle: "文章与长评",
+                    systemImage: "doc.text.fill",
+                    tint: Glass.blue
+                )
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
     }
 
-    private func profileHeader(_ model: MemberViewModel) -> some View {        VStack(alignment: .leading, spacing: 14) {
+    private func entryCard(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        tint: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.title3)
+                .foregroundStyle(tint)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .liquidGlass(cornerRadius: 16, elevation: 0.6)
+    }
+
+    private func profileHeader(_ model: MemberViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
                 AvatarImage(url: model.profile?.faceURL, size: 68)
                 VStack(alignment: .leading, spacing: 6) {
