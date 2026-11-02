@@ -17,6 +17,7 @@ final class AppEnvironment {
     let audioSession: AudioSessionCoordinator
     let account: AccountStore
     let downloads: DownloadManager
+    let webdav: WebDAVSyncService
     let modelContainer: ModelContainer
 
     /// 由任意列表发起、`RootView` 统一呈现的全屏播放请求。
@@ -32,9 +33,14 @@ final class AppEnvironment {
         self.client = client
         self.settings = settings
         self.audioSession = audioSession
-        self.history = PlaybackHistoryStore(context: modelContainer.mainContext)
+        let historyStore = PlaybackHistoryStore(context: modelContainer.mainContext)
+        self.history = historyStore
         self.account = AccountStore(client: client)
         self.downloads = DownloadManager(client: client)
+        self.webdav = WebDAVSyncService(
+            history: historyStore,
+            settings: settings
+        )
     }
 
     static func live() -> AppEnvironment {

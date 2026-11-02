@@ -89,6 +89,14 @@ struct SettingsScreen: View {
                 }
             }
 
+            Section("同步与备份") {
+                NavigationLink {
+                    WebDAVSyncScreen()
+                } label: {
+                    Label("WebDAV 同步", systemImage: "arrow.triangle.2.circlepath.icloud")
+                }
+            }
+
             Section("外观") {
                 Picker("主题", selection: $settings.appearance) {
                     ForEach(AppearanceMode.allCases) { mode in

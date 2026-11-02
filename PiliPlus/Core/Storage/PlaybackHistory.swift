@@ -140,6 +140,25 @@ final class PlaybackHistoryStore {
         save()
     }
 
+    /// 全量导出（用于 WebDAV 备份）。
+    func allRecords() -> [PlaybackRecord] {
+        let descriptor = FetchDescriptor<PlaybackRecord>(
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        return (try? context.fetch(descriptor)) ?? []
+    }
+
+    /// 全量替换（用于 WebDAV 恢复）。
+    func importAll(_ records: [PlaybackRecord]) {
+        for record in allRecords() {
+            context.delete(record)
+        }
+        for record in records {
+            context.insert(record)
+        }
+        save()
+    }
+
     private func save() {
         do {
             try context.save()
