@@ -105,6 +105,14 @@ struct SettingsScreen: View {
                 }
             }
 
+            Section("账号") {
+                NavigationLink {
+                    LoginSecurityScreen()
+                } label: {
+                    Label("账号安全", systemImage: "lock.shield")
+                }
+            }
+
             Section("诊断") {
                 NavigationLink {
                     LogsScreen()

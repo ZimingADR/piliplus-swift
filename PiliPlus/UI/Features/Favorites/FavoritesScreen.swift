@@ -10,6 +10,7 @@ struct FavoritesScreen: View {
     @State private var newFolderTitle = ""
     @State private var isCreating = false
     @State private var createError: String?
+    @State private var folderSort: FavoriteFolderSort = .server
 
     private enum Phase: Equatable {
         case idle
@@ -27,6 +28,19 @@ struct FavoritesScreen: View {
         .navigationTitle("收藏夹")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Menu {
+                    Picker("排序", selection: $folderSort) {
+                        ForEach(FavoriteFolderSort.allCases) { order in
+                            Text(order.title).tag(order)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "arrow.up.arrow.down")
+                }
+                .accessibilityLabel("收藏夹排序")
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     guard environment.account.isLoggedIn else {
@@ -94,7 +108,7 @@ struct FavoritesScreen: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 10) {
-                        ForEach(folders) { folder in
+                        ForEach(sortedFolders) { folder in
                             NavigationLink {
                                 FavoriteDetailScreen(folder: folder)
                             } label: {
@@ -134,6 +148,17 @@ struct FavoritesScreen: View {
         }
         .padding(12)
         .liquidGlass(cornerRadius: 20, elevation: 0.7)
+    }
+
+    private var sortedFolders: [FavoriteFolder] {
+        switch folderSort {
+        case .server:
+            folders
+        case .name:
+            folders.sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+        case .count:
+            folders.sorted { $0.mediaCount > $1.mediaCount }
+        }
     }
 
     private func createFolder() async {
@@ -313,6 +338,23 @@ struct FavoriteDetailScreen: View {
             // 静默失败，滚动重试。
         }
         isLoadingMore = false
+    }
+}
+
+/// 收藏夹文件夹排序。
+enum FavoriteFolderSort: String, CaseIterable, Identifiable, Equatable {
+    case server
+    case name
+    case count
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .server: "默认顺序"
+        case .name: "按名称"
+        case .count: "按内容数"
+        }
     }
 }
 
