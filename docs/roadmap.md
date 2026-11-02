@@ -24,9 +24,9 @@
 | `fav` / `fav_detail` | `UI/Features/Favorites/*` | ✅ 列表 + 分页详情 |
 | `fav_search` | — | ⏳ |
 | `fav_create` / `fav_sort` / `fav_folder_sort` | — | ⏳ |
-| `main_reply` | `UI/Features/Comments/*` | ✅ 主楼分页 + 发表评论 |
-| `my_reply`（楼中楼） | — | ⏳ |
-| `emote` | — | ⏳ |
+| `main_reply` | `UI/Features/Comments/CommentsSheet.swift` | ✅ 主楼分页 + 发表 + 点赞 |
+| `my_reply`（楼中楼） | `UI/Features/Comments/RepliesSheet.swift` | ✅ 子回复分页 + 回复输入 |
+| `emote` | `EmoteCatalog` + 评论表情面板 | ✅ 常用表情码插入 |
 | `follow` | `UI/Features/Follow/*`、`MemberScreen` 关注按钮 | ✅ 列表 + 关注 / 取关 |
 | `follow_search` | — | ⏳ |
 | `danmaku_block` | — | ⏳ |
