@@ -11,7 +11,7 @@
 | Group 2 | 登录、收藏、评论、关注、弹幕屏蔽 | 🚧 主要链路已可用（收藏 / 关注 / 评论 / 互动） |
 | Group 3 | UP 主空间、榜单、稍后再看、热门 | 🚧 热门 / 排行 / 稍后 / UP 主投稿已可用 |
 | Group 4 | 动态、专栏、话题 | 🚧 动态信息流 / 详情 / 专栏阅读已可用 |
-| Group 5 | 番剧、直播、音乐 | ⏳ 待开始 |
+| Group 5 | 番剧、直播、音乐 | 🚧 番剧索引/季详情/播放、直播列表/直播间已可用 |
 | Group 6 | 下载、WebDAV、SponsorBlock、小组件 | ⏳ 待开始 |
 
 ## Group 2 明细
@@ -56,6 +56,20 @@
 | `dynamics_tab` / `dynamics_topic` / `dynamics_create` | — | ⏳ |
 | `article_list` | — | ⏳ |
 | `group_panel` / `msg_feed_top` / `fan` | — | ⏳ |
+
+## Group 5 明细
+
+| 模块 | 实现位置 | 状态 |
+| :--- | :--- | :--- |
+| `pgc` | `UI/Features/PGC/PGCScreen.swift` | ✅ 季详情 + 剧集选集 + PGC 播放 |
+| `pgc` 播放 | `PlaybackController.startPGC` + `BiliClient.pgcPlayURL` | ✅ web v2 / 旧版回退 |
+| `pgc_index` | `PGCScreen` | ✅ 索引分页（海报网格） |
+| `pgc_review` | — | ⏳ |
+| `live` | `UI/Features/Live/LiveScreen.swift` | ✅ 推荐列表分页 |
+| `live_room` | `LiveRoomScreen` + MPV | ✅ FLV/HLS 直播流 |
+| `live_area` / `live_search` / `live_follow` | — | ⏳ |
+| `audio` / `music` | — | ⏳ |
+| `subscription` / `save_panel` | — | ⏳ |
 
 ## Liquid Glass 设计系统
 
