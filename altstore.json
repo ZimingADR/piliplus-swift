@@ -34,7 +34,7 @@
           "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.2.0/PiliPlus-0.2.0-unsigned.ipa",
           "size": 12935066,
           "sha256": "f3b83cac7768fee86b7d9572811d0bb0c8f55bc0eb47094da12dc251a8a266ed",
-          "minOSVersion": "18.0"
+          "minOSVersion": "27.1"
         },
         {
           "version": "0.1.1",
