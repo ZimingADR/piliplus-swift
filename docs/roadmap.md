@@ -46,7 +46,8 @@
 | `member` / `member_home` / `member_video` | `UI/Features/Member/MemberScreen.swift` | ✅ 资料 + 投稿分页 + 排序 |
 | `member_favorite` | `MemberFavoritesScreen` | ✅ UP 主公开收藏夹 → 详情 |
 | `member_article` | `MemberArticlesScreen` + WBI/旧接口回退 | ✅ UP 主专栏列表 → 阅读 |
-| `member_profile` / `member_like_arc` / `member_series` 等 | — | ⏳ |
+| `member_series` | `MemberCollectionsScreen` + `seasons_series_list` | ✅ UP 主合集/系列列表 |
+| `member_profile` / `member_like_arc` 等 | — | ⏳ |
 | `member_search` | — | ⏳ |
 | `popular_precious` | `PreciousScreen` + `BiliClient.preciousVideos` | ✅ 入站必刷分页 |
 | `popular_series`（每周必看） | `WeeklyScreen` + `popularSeriesList/Videos` | ✅ 系列切换 + 当期网格 |
