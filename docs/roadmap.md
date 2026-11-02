@@ -72,7 +72,7 @@
 | `pgc` | `UI/Features/PGC/PGCScreen.swift` | ✅ 季详情 + 剧集选集 + PGC 播放 |
 | `pgc` 播放 | `PlaybackController.startPGC` + `BiliClient.pgcPlayURL` | ✅ web v2 / 旧版回退 |
 | `pgc_index` | `PGCScreen` | ✅ 索引分页（海报网格） |
-| `pgc_review` | — | ⏳ |
+| `pgc_review` | `PGCReviewsScreen` + `/pgc/review/long/list` | ✅ 长评游标分页 / 评分 / 点赞数 |
 | `live` | `UI/Features/Live/LiveScreen.swift` | ✅ 推荐列表分页 |
 | `live_room` | `LiveRoomScreen` + MPV | ✅ FLV/HLS 直播流 |
 | `live_search` | `LiveSearchSheet` + WBI search_type=live | ✅ 关键词搜索直播间 |
