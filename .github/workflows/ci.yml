@@ -16,18 +16,26 @@ permissions:
 jobs:
   build-and-test:
     name: Build & Test (iOS Simulator)
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 60
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show toolchain
+      - name: Select Xcode 27.1 (iOS 27.1 SDK)
         run: |
+          set -euo pipefail
+          sudo xcode-select -s /Applications/Xcode_27.1.app
           sw_vers
           xcodebuild -version
-          xcrun simctl list runtimes | tail -n 5
+          xcodebuild -showsdks | grep -E 'iphoneos27|iphonesimulator27' || true
+          xcodebuild -showsdks | grep -q 'iphoneos27\.1' || {
+            echo "::error::iOS 27.1 SDK was not found on this runner"
+            xcodebuild -showsdks
+            exit 1
+          }
+          xcrun simctl list runtimes | grep -E 'iOS 27' || true
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -83,7 +91,19 @@ jobs:
       - name: Run unit tests
         run: |
           set -o pipefail
-          UDID=$(xcrun simctl list devices available | grep -m1 -E '^[[:space:]]+iPhone' | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+          UDID=$(python3 - <<'PY'
+          import json, subprocess, sys
+          data = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
+          for runtime, devices in data["devices"].items():
+              if "iOS-27-1" not in runtime:
+                  continue
+              for device in devices:
+                  if "iPhone" in device["name"]:
+                      print(device["udid"])
+                      sys.exit(0)
+          sys.exit("no iOS 27.1 iPhone simulator available")
+          PY
+          )
           echo "Using simulator $UDID"
           test -n "$UDID"
           xcodebuild test \

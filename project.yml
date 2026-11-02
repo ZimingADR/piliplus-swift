@@ -4,7 +4,7 @@ options:
   minimumXcodeGenVersion: "2.42.0"
   bundleIdPrefix: com.zimingadr
   deploymentTarget:
-    iOS: "18.0"
+    iOS: "27.1"
   createIntermediateGroups: true
   defaultConfig: Debug
   groupSortPosition: top
@@ -28,7 +28,7 @@ settings:
     MARKETING_VERSION: "0.1.1"
     CURRENT_PROJECT_VERSION: "2"
     CODE_SIGN_STYLE: Automatic
-    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "27.1"
     ENABLE_MODULE_VERIFIER: NO
 
 packages:
@@ -40,7 +40,7 @@ targets:
   PiliPlus:
     type: application
     platform: iOS
-    deploymentTarget: "18.0"
+    deploymentTarget: "27.1"
     sources:
       - path: PiliPlus
         excludes:
@@ -68,7 +68,7 @@ targets:
   PiliPlusTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "18.0"
+    deploymentTarget: "27.1"
     sources:
       - path: Tests/PiliPlusTests
     dependencies:

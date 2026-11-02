@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build-ipa:
     name: Build unsigned IPA & SideStore source
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 60
 
     steps:
@@ -30,10 +30,17 @@ jobs:
           # 发布后需要把 altstore.json 提交回 main，必须拿到完整历史才能 rebase。
           fetch-depth: 0
 
-      - name: Show toolchain
+      - name: Select Xcode 27.1 (iOS 27.1 SDK)
         run: |
-          xcodebuild -version
+          set -euo pipefail
+          sudo xcode-select -s /Applications/Xcode_27.1.app
           sw_vers
+          xcodebuild -version
+          xcodebuild -showsdks | grep -q 'iphoneos27\.1' || {
+            echo "::error::iOS 27.1 SDK was not found on this runner"
+            xcodebuild -showsdks
+            exit 1
+          }
 
       - name: Install XcodeGen
         run: brew install xcodegen
