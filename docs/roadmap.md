@@ -8,8 +8,8 @@
 | 分组 | 目标 | 状态 |
 | :--- | :--- | :--- |
 | Group 1 | 核心播放与发现闭环（MVP） | ✅ 已交付（v0.1.1） |
-| Group 2 | 登录、收藏、评论、关注、弹幕屏蔽 | 🚧 进行中 |
-| Group 3 | UP 主空间、榜单、稍后再看、热门 | 🚧 进行中 |
+| Group 2 | 登录、收藏、评论、关注、弹幕屏蔽 | 🚧 主要链路已可用（收藏 / 关注 / 评论 / 互动） |
+| Group 3 | UP 主空间、榜单、稍后再看、热门 | 🚧 热门 / 排行 / 稍后 / UP 主投稿已可用 |
 | Group 4 | 动态、专栏、话题 | ⏳ 待开始 |
 | Group 5 | 番剧、直播、音乐 | ⏳ 待开始 |
 | Group 6 | 下载、WebDAV、SponsorBlock、小组件 | ⏳ 待开始 |
@@ -21,14 +21,18 @@
 | `login`（二维码） | `UI/Features/Account/LoginScreen.swift`、`BiliClient.qrLogin*` | ✅ |
 | `login`（短信 / 密码） | — | ⏳ Web 端限制，暂缓 |
 | `mine` | `UI/Features/Account/MineScreen.swift` | ✅ 资料 / 统计 / 快捷入口 |
-| `fav` / `fav_detail` / `fav_search` | `UI/Features/Favorites/*` | ⏳ |
+| `fav` / `fav_detail` | `UI/Features/Favorites/*` | ✅ 列表 + 分页详情 |
+| `fav_search` | — | ⏳ |
 | `fav_create` / `fav_sort` / `fav_folder_sort` | — | ⏳ |
-| `main_reply` / `my_reply` | `UI/Features/Comments/*` | ⏳ |
+| `main_reply` | `UI/Features/Comments/*` | ✅ 主楼分页 + 发表评论 |
+| `my_reply`（楼中楼） | — | ⏳ |
 | `emote` | — | ⏳ |
-| `follow` / `follow_search` | `UI/Features/Follow/*` | ⏳ |
+| `follow` | `UI/Features/Follow/*`、`MemberScreen` 关注按钮 | ✅ 列表 + 关注 / 取关 |
+| `follow_search` | — | ⏳ |
 | `danmaku_block` | — | ⏳ |
 | `login_devices` / `login_log` | — | ⏳ |
 | `webview`（Geetest） | — | ⏳ 仅在触发风控时需要 |
+| 视频互动 | 播放器「更多」菜单 | ✅ 点赞 / 投币 / 收藏 / 稍后再看 / 关注 |
 
 ## Group 3 明细
 
@@ -36,7 +40,7 @@
 | :--- | :--- | :--- |
 | `hot` | `VideoFeedModel(.hot)` + `VideoFeedScreen` | ✅ |
 | `rank` | `VideoFeedModel(.rank)` | ✅ |
-| `later` / `later_search` | `LaterScreen` | ✅ 列表；加入 / 删除 ⏳ |
+| `later` / `later_search` | `LaterScreen` + 播放器菜单 | ✅ 列表 + 加入 / 移除 |
 | `member` / `member_home` / `member_video` | `UI/Features/Member/MemberScreen.swift` | ✅ 资料 + 投稿分页 + 排序 |
 | `member_profile` / `member_favorite` / `member_like_arc` 等 | — | ⏳ |
 | `member_search` | — | ⏳ |
