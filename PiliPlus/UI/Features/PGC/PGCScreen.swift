@@ -168,6 +168,17 @@ struct PGCSeasonScreen: View {
                     VStack(alignment: .leading, spacing: 16) {
                         header(season)
                         episodes(season)
+
+                        NavigationLink {
+                            PGCReviewsScreen(
+                                mediaID: season.mediaID,
+                                seasonTitle: season.title
+                            )
+                        } label: {
+                            Label("长评", systemImage: "text.quote")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(GlassButtonStyle(tint: Glass.violet))
                     }
                     .padding(.horizontal, Theme.screenPadding)
                     .padding(.vertical, 12)

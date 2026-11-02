@@ -4,6 +4,7 @@ import Foundation
 
 struct PGCSeason: Sendable {
     let seasonID: Int
+    let mediaID: Int
     let title: String
     let coverURL: URL?
     let evaluate: String
@@ -80,6 +81,7 @@ struct PGCSeasonResponse: Decodable, Sendable {
         }
 
         let seasonID: FlexInt?
+        let mediaID: FlexInt?
         let title: String?
         let cover: String?
         let evaluate: String?
@@ -92,6 +94,7 @@ struct PGCSeasonResponse: Decodable, Sendable {
         enum CodingKeys: String, CodingKey {
             case title, cover, evaluate, rating, areas, episodes, stat
             case seasonID = "season_id"
+            case mediaID = "media_id"
             case newEp = "new_ep"
         }
     }
@@ -122,6 +125,7 @@ extension PGCSeasonResponse.Payload {
 
         return PGCSeason(
             seasonID: seasonID,
+            mediaID: mediaID?.value ?? seasonID,
             title: title ?? "番剧",
             coverURL: Self.httpsURL(cover),
             evaluate: evaluate ?? "",
