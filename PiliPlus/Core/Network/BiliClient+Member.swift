@@ -45,4 +45,51 @@ extension BiliClient {
         let current = payload.page?.pn?.value ?? page
         return (articles, current * pageSize < total)
     }
+
+    /// UP 主合集/系列列表。
+    func memberCollections(mid: Int, page: Int) async throws -> ([MemberCollection], Bool) {
+        let payload: SpaceCollectionsResponse.Payload = try await object(
+            SpaceCollectionsResponse.Payload.self,
+            path: "/x/polymer/web-space/seasons_series_list",
+            query: [
+                "mid": String(mid),
+                "page_num": String(max(1, page)),
+                "page_size": "20",
+            ],
+            signed: false
+        )
+
+        guard let lists = payload.itemsLists else { return ([], false) }
+
+        var collections: [MemberCollection] = []
+
+        for item in lists.seasonsList ?? [] {
+            guard let meta = item.meta, let number = meta.seasonID?.value else { continue }
+            collections.append(
+                MemberCollection(
+                    number: number,
+                    title: (meta.name ?? "合集").removingHTMLTags,
+                    coverURL: RecommendFeedResponse.Item.httpsURL(meta.cover),
+                    count: meta.total?.value ?? 0,
+                    isSeason: true
+                )
+            )
+        }
+
+        for item in lists.seriesList ?? [] {
+            guard let meta = item.meta, let number = meta.seriesID?.value else { continue }
+            collections.append(
+                MemberCollection(
+                    number: number,
+                    title: (meta.name ?? "系列").removingHTMLTags,
+                    coverURL: RecommendFeedResponse.Item.httpsURL(meta.cover),
+                    count: meta.total?.value ?? 0,
+                    isSeason: false
+                )
+            )
+        }
+
+        let total = lists.page?.total?.value ?? collections.count
+        return (collections, page * 20 < total)
+    }
 }

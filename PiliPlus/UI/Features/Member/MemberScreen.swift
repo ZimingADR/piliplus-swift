@@ -54,12 +54,19 @@ struct MemberScreen: View {
     }
 
     private var memberEntry: some View {
-        HStack(spacing: 10) {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10),
+            ],
+            spacing: 10
+        ) {
             NavigationLink {
                 MemberFavoritesScreen(mid: mid)
             } label: {
                 entryCard(
-                    title: "TA 的收藏夹",
+                    title: "收藏夹",
                     subtitle: "公开收藏",
                     systemImage: "star.square.on.square.fill",
                     tint: Glass.pink
@@ -71,10 +78,22 @@ struct MemberScreen: View {
                 MemberArticlesScreen(mid: mid)
             } label: {
                 entryCard(
-                    title: "TA 的专栏",
-                    subtitle: "文章与长评",
+                    title: "专栏",
+                    subtitle: "文章长评",
                     systemImage: "doc.text.fill",
                     tint: Glass.blue
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                MemberCollectionsScreen(mid: mid)
+            } label: {
+                entryCard(
+                    title: "合集",
+                    subtitle: "合集系列",
+                    systemImage: "rectangle.stack.fill",
+                    tint: Glass.mint
                 )
             }
             .buttonStyle(.plain)
@@ -94,7 +113,7 @@ struct MemberScreen: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 Text(subtitle)
