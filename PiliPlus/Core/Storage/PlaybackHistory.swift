@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import SwiftData
 
 /// 一条播放历史记录。`videoKey` 取 bvid，保证同一条视频只有一条记录。

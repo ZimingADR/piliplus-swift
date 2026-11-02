@@ -39,19 +39,19 @@ struct VideoCard: Identifiable, Hashable, Sendable {
     }
 
     static func formatCount(_ count: Int) -> String {
-        switch count {
-        case ..<0: "0"
-        case ..<10_000: "\(count)"
-        case ..<100_000_000:
-            {
-                let value = Double(count) / 10_000
-                return value >= 10
-                    ? String(format: "%.0f万", value)
-                    : String(format: "%.1f万", value)
-            }()
-        default:
-            String(format: "%.1f亿", Double(count) / 100_000_000)
+        if count < 0 {
+            return "0"
         }
+        if count < 10_000 {
+            return "\(count)"
+        }
+        if count < 100_000_000 {
+            let value = Double(count) / 10_000
+            return value >= 10
+                ? String(format: "%.0f万", value)
+                : String(format: "%.1f万", value)
+        }
+        return String(format: "%.1f亿", Double(count) / 100_000_000)
     }
 }
 

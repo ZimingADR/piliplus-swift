@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import SwiftData
 import SwiftUI
 
@@ -15,6 +16,9 @@ final class AppEnvironment {
     let history: PlaybackHistoryStore
     let audioSession: AudioSessionCoordinator
     let modelContainer: ModelContainer
+
+    /// 由任意列表发起、`RootView` 统一呈现的全屏播放请求。
+    var playerRequest: PlayerRequest?
 
     init(
         modelContainer: ModelContainer,
