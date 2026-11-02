@@ -91,6 +91,18 @@ struct DiscoverScreen: View {
             .buttonStyle(.plain)
 
             NavigationLink {
+                PreciousScreen()
+            } label: {
+                DiscoverCard(
+                    title: "入站必刷",
+                    subtitle: "站内经典名场面",
+                    systemImage: "sparkles",
+                    tint: Glass.violet
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 LaterScreen()
             } label: {
                 DiscoverCard(
