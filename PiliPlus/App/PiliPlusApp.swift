@@ -9,6 +9,7 @@ struct PiliPlusApp: App {
             RootView()
                 .environment(environment)
                 .preferredColorScheme(environment.settings.appearance.colorScheme)
+                .tint(Glass.pink)
         }
         .modelContainer(environment.modelContainer)
     }

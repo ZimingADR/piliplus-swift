@@ -19,6 +19,7 @@ struct PlayerScreen: View {
     @State private var showsEpisodes = false
     @State private var showsDanmakuSettings = false
     @State private var showsSearchPanel = false
+    @State private var showsMember = false
 
     @State private var isSeeking = false
     @State private var seekValue: Double = 0
@@ -272,6 +273,13 @@ struct PlayerScreen: View {
         .sheet(isPresented: $showsSearchPanel) {
             SearchPanelSheet()
         }
+        .sheet(isPresented: $showsMember) {
+            if let mid = controller.ownerMid {
+                NavigationStack {
+                    MemberScreen(mid: mid, showsCloseButton: true)
+                }
+            }
+        }
     }
 
     private func topBar(_ controller: PlaybackController) -> some View {
@@ -289,12 +297,25 @@ struct PlayerScreen: View {
                 Text(controller.title)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
-                if let page = controller.currentPage {
-                    Text("\(controller.ownerName) · \(page.title)")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .lineLimit(1)
+                Button {
+                    if controller.ownerMid != nil {
+                        showsMember = true
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("\(controller.ownerName)\(controller.currentPage.map { " · \($0.title)" } ?? "")")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .lineLimit(1)
+                        if controller.ownerMid != nil {
+                            Image(systemName: "chevron.right")
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
+                    }
                 }
+                .buttonStyle(.plain)
+                .disabled(controller.ownerMid == nil)
             }
 
             Spacer(minLength: 0)

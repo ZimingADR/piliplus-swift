@@ -93,6 +93,10 @@ final class PlaybackController {
         detail?.owner?.name ?? sourceCard?.ownerName ?? ""
     }
 
+    var ownerMid: Int? {
+        detail?.owner?.mid
+    }
+
     var coverURL: URL? {
         detail?.coverURL ?? sourceCard?.coverURL
     }

@@ -124,6 +124,8 @@ struct SettingsScreen: View {
         }
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollContentBackground(.hidden)
+        .background { LiquidBackground() }
     }
 
     private func sliderRow(

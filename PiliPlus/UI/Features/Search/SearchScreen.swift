@@ -21,7 +21,7 @@ struct SearchScreen: View {
 
             content
         }
-        .background(Color(.systemBackground))
+        .liquidScreen()
         .navigationTitle(isPanel ? "快速搜索" : "搜索")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -173,6 +173,7 @@ struct SearchScreen: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: - 结果

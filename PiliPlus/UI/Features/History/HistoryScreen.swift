@@ -31,7 +31,7 @@ struct HistoryScreen: View {
                 listContent
             }
         }
-        .background(Color(.systemBackground))
+        .liquidScreen()
         .navigationTitle("历史")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "搜索播放历史")
@@ -83,6 +83,7 @@ struct HistoryScreen: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     private func resume(_ record: PlaybackRecord) {

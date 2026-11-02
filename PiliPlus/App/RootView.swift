@@ -19,7 +19,10 @@ struct RootView: View {
         .fullScreenCover(item: $environment.playerRequest) { request in
             PlayerScreen(request: request)
         }
-        .tint(Theme.accent)
+        .tint(Glass.pink)
+        .task {
+            await environment.account.restore()
+        }
     }
 
     // MARK: - iPhone
@@ -29,9 +32,10 @@ struct RootView: View {
             ForEach(AppTab.allCases) { tab in
                 NavigationStack {
                     screen(for: tab)
+                        .toolbar(.hidden, for: .navigationBar)
                         .toolbar(.hidden, for: .tabBar)
                         .safeAreaInset(edge: .bottom) {
-                            Color.clear.frame(height: 64)
+                            Color.clear.frame(height: 68)
                         }
                 }
                 .tag(tab)
@@ -39,7 +43,7 @@ struct RootView: View {
         }
         .overlay(alignment: .bottom) {
             GlassTabBar(selection: $selection)
-                .padding(.horizontal, 28)
+                .padding(.horizontal, 40)
                 .padding(.bottom, 4)
         }
     }
@@ -60,6 +64,7 @@ struct RootView: View {
         } detail: {
             NavigationStack {
                 screen(for: selection)
+                    .toolbar(.hidden, for: .navigationBar)
             }
         }
         .navigationSplitViewStyle(.balanced)
@@ -72,12 +77,10 @@ struct RootView: View {
         switch tab {
         case .home:
             HomeScreen()
-        case .search:
-            SearchScreen()
-        case .history:
-            HistoryScreen()
-        case .settings:
-            SettingsScreen()
+        case .discover:
+            DiscoverScreen()
+        case .mine:
+            MineScreen()
         }
     }
 }

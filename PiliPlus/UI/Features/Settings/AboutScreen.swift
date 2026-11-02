@@ -76,6 +76,8 @@ struct AboutScreen: View {
         }
         .navigationTitle("关于")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollContentBackground(.hidden)
+        .background { LiquidBackground() }
     }
 
     private var icon: some View {

@@ -1,92 +1,163 @@
 import SwiftUI
 
-/// 首页推荐流。
+/// 首页：推荐 / 热门 / 排行榜。
 ///
-/// iPhone 单列大卡片，iPad 双列；下拉刷新重新拉取推荐，滚动到末尾自动翻页。
+/// 信息架构对齐 Flutter 版 PiliPlus：顶部品牌栏 + 可切换内容流。
+/// 视觉升级为 Liquid Glass——悬浮分段控件、玻璃卡片与光晕背景。
 struct HomeScreen: View {
-    @Environment(AppEnvironment.self) private var environment
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @State private var model: HomeFeedModel?
+    enum Segment: String, CaseIterable, Hashable {
+        case recommend
+        case hot
+        case rank
 
-    private var columns: [GridItem] {
-        if horizontalSizeClass == .regular {
-            return [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)]
+        var title: String {
+            switch self {
+            case .recommend: "推荐"
+            case .hot: "热门"
+            case .rank: "排行榜"
+            }
         }
-        return [GridItem(.flexible())]
+
+        var subtitle: String {
+            switch self {
+            case .recommend: "为你挑选的今日内容"
+            case .hot: "全站正在热议"
+            case .rank: "综合排行 · 每日更新"
+            }
+        }
     }
 
-    var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
-                header
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-                if let model {
-                    switch model.phase {
-                    case .idle:
-                        LoadingStateView(style: .loading)
-                    case .loading:
-                        if model.videos.isEmpty {
-                            LoadingStateView(style: .loading)
-                        } else {
-                            feed(model)
-                        }
-                    case .failed(let message):
-                        if model.videos.isEmpty {
-                            LoadingStateView(style: .failure(message)) {
-                                Task { await model.refresh() }
-                            }
-                        } else {
-                            feed(model)
-                        }
-                    case .loaded:
-                        feed(model)
+    @Namespace private var segmentNamespace
+    @State private var segment: Segment = .recommend
+    @State private var model: HomeFeedModel?
+    @State private var showsSearch = false
+
+    var body: some View {
+        ZStack {
+            LiquidBackground()
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    header
+                    GlassSegmentedControl(
+                        items: Segment.allCases,
+                        title: { $0.title },
+                        selection: $segment,
+                        namespace: segmentNamespace
+                    )
+
+                    switch segment {
+                    case .recommend:
+                        recommendContent
+                    case .hot:
+                        VideoFeedContent(kind: .hot) { play($0) }
+                            .transition(.opacity)
+                    case .rank:
+                        VideoFeedContent(kind: .rank) { play($0) }
+                            .transition(.opacity)
                     }
-                } else {
-                    LoadingStateView(style: .loading)
+                }
+                .padding(.horizontal, Theme.screenPadding)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+            }
+            .refreshable {
+                if segment == .recommend {
+                    await model?.refresh()
                 }
             }
-            .padding(.horizontal, Theme.screenPadding)
-            .padding(.top, 8)
-            .padding(.bottom, 16)
         }
-        .background(Color(.systemBackground))
-        .navigationTitle("推荐")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task { await model?.refresh() }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .accessibilityLabel("刷新推荐")
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             if model == nil {
                 model = HomeFeedModel(client: environment.client)
             }
             await model?.loadInitialIfNeeded()
         }
-        .refreshable {
-            await model?.refresh()
+        .sheet(isPresented: $showsSearch) {
+            SearchPanelSheet()
         }
     }
+
+    // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("今日推荐")
-                .font(.title2.weight(.semibold))
-            Text("无需登录 · 下拉刷新 · 上拉加载")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("PiliPlus")
+                    .font(.system(size: 26, weight: .bold, design: .default))
+                    .foregroundStyle(.primary)
+                Text(segment.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.opacity)
+            }
+            Spacer(minLength: 0)
+
+            GlassIconButton(systemName: "magnifyingglass") {
+                showsSearch = true
+            }
+            .accessibilityLabel("搜索")
+
+            NavigationLink {
+                HistoryScreen()
+            } label: {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 38, height: 38)
+                    .background(.ultraThinMaterial, in: .circle)
+                    .overlay {
+                        Circle().strokeBorder(.white.opacity(0.35), lineWidth: 0.8)
+                    }
+            }
+            .accessibilityLabel("播放历史")
         }
-        .padding(.top, 4)
-        .padding(.bottom, 4)
     }
 
-    private func feed(_ model: HomeFeedModel) -> some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
+    // MARK: - 推荐
+
+    @ViewBuilder
+    private var recommendContent: some View {
+        if let model {
+            switch model.phase {
+            case .idle:
+                LoadingStateView(style: .loading)
+            case .loading:
+                if model.videos.isEmpty {
+                    skeletonFeed
+                } else {
+                    recommendGrid(model)
+                }
+            case .failed(let message):
+                if model.videos.isEmpty {
+                    LoadingStateView(style: .failure(message)) {
+                        Task { await model.refresh() }
+                    }
+                } else {
+                    recommendGrid(model)
+                }
+            case .loaded:
+                if model.videos.isEmpty {
+                    ContentUnavailableView {
+                        Label("暂时没有推荐内容", systemImage: "sparkles")
+                    } description: {
+                        Text("下拉刷新试试。")
+                    }
+                } else {
+                    recommendGrid(model)
+                }
+            }
+        } else {
+            skeletonFeed
+        }
+    }
+
+    private func recommendGrid(_ model: HomeFeedModel) -> some View {
+        LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading, spacing: 20) {
             ForEach(model.videos) { card in
                 Button {
                     play(card)
@@ -94,8 +165,8 @@ struct HomeScreen: View {
                     VideoCardTile(card: card, showsOwnerFace: true)
                 }
                 .buttonStyle(.plain)
-                .task {
-                    await model.loadMoreIfNeeded(current: card)
+                .onAppear {
+                    Task { await model.loadMoreIfNeeded(current: card) }
                 }
             }
         }
@@ -106,6 +177,26 @@ struct HomeScreen: View {
                     .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    private var skeletonFeed: some View {
+        VStack(spacing: 20) {
+            ForEach(0 ..< 3, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: 8) {
+                    RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                        .fill(.quaternary)
+                        .aspectRatio(Theme.coverAspect, contentMode: .fit)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(.quaternary)
+                        .frame(height: 14)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(.quaternary)
+                        .frame(width: 140, height: 12)
+                }
+            }
+        }
+        .redacted(reason: .placeholder)
+        .padding(.top, 8)
     }
 
     private func play(_ card: VideoCard) {

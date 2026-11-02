@@ -118,6 +118,8 @@ struct LoudnessSettingsScreen: View {
         }
         .navigationTitle("音量平衡")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollContentBackground(.hidden)
+        .background { LiquidBackground() }
     }
 
     private func stageRow(index: Int, title: String, detail: String) -> some View {

@@ -59,6 +59,7 @@ actor BiliClient {
     enum Host: String, Sendable {
         case api = "https://api.bilibili.com"
         case search = "https://s.search.bilibili.com"
+        case passport = "https://passport.bilibili.com"
     }
 
     static let shared = BiliClient()
@@ -66,6 +67,8 @@ actor BiliClient {
     private let session: URLSession
     private let decoder = JSONDecoder()
     private var cookie: String
+    private var deviceCookie: String
+    private var loginCookie: String?
     private var didBootstrapBuvid = false
     private var mixinKey: String?
     private var mixinKeyDate: Date?
@@ -77,6 +80,7 @@ actor BiliClient {
 
     init(session: URLSession = .biliShared, credentials: BiliCredentials = .persisted()) {
         self.session = session
+        self.deviceCookie = credentials.cookieHeader
         self.cookie = credentials.cookieHeader
     }
 
@@ -302,6 +306,163 @@ actor BiliClient {
         return segments.sorted { $0.time < $1.time }
     }
 
+    // MARK: - 账号与登录
+
+    var hasLoginCookie: Bool {
+        !(loginCookie ?? "").isEmpty
+    }
+
+    func updateLoginCookie(_ newValue: String?) {
+        let trimmed = newValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        loginCookie = trimmed.isEmpty ? nil : trimmed
+        rebuildCookie()
+        // 登录态变化后重新获取 Wbi 密钥，避免继续使用匿名态缓存。
+        mixinKey = nil
+        mixinKeyDate = nil
+    }
+
+    func csrfToken() -> String? {
+        cookieValue(named: "bili_jct", in: loginCookie)
+    }
+
+    func accountInfo() async throws -> AccountProfile {
+        let data = try await requestData(
+            "/x/web-interface/nav",
+            query: [:],
+            host: .api,
+            signed: false
+        )
+        let nav = try decoder.decode(NavResponse.self, from: data)
+        guard let payload = nav.data, payload.isLogin == true, let mid = payload.mid else {
+            throw BiliAPIError(code: -101, message: "尚未登录")
+        }
+
+        let stats = try? await relationStats(mid: mid)
+        return AccountProfile(
+            mid: mid,
+            name: payload.uname ?? "B 站用户",
+            faceURL: RecommendFeedResponse.Item.httpsURL(payload.face),
+            level: payload.levelInfo?.currentLevel?.value ?? 0,
+            coins: Int(payload.money?.value ?? 0),
+            isVip: (payload.vipStatus?.value ?? 0) > 0,
+            following: stats?.following?.value ?? 0,
+            follower: stats?.follower?.value ?? 0
+        )
+    }
+
+    func relationStats(mid: Int) async throws -> RelationStats {
+        try await object(
+            RelationStats.self,
+            path: "/x/relation/stat",
+            query: ["vmid": String(mid)],
+            signed: false
+        )
+    }
+
+    func qrLoginSession() async throws -> QRLoginSession {
+        let data = try await requestData(
+            "/x/passport-login/web/qrcode/generate",
+            query: ["source": "main-fe-header"],
+            host: .passport,
+            signed: false
+        )
+        let response = try decoder.decode(QRGenerateResponse.self, from: data)
+        guard response.code == 0,
+              let payload = response.data,
+              !payload.qrcodeKey.isEmpty else {
+            throw BiliAPIError(
+                code: response.code,
+                message: response.message ?? "二维码生成失败"
+            )
+        }
+        return QRLoginSession(url: payload.url, key: payload.qrcodeKey)
+    }
+
+    func qrLoginPoll(key: String) async throws -> QRLoginPollResult {
+        let (data, http) = try await performRequestWithResponse(
+            "/x/passport-login/web/qrcode/poll",
+            query: ["qrcode_key": key, "source": "main-fe-header"],
+            host: .passport,
+            signed: false
+        )
+        let response = try decoder.decode(QRPollResponse.self, from: data)
+        guard response.code == 0, let payload = response.data else {
+            throw BiliAPIError(
+                code: response.code,
+                message: response.message ?? "登录状态查询失败"
+            )
+        }
+
+        switch payload.code {
+        case 0:
+            return QRLoginPollResult(
+                state: .succeeded,
+                message: "登录成功",
+                cookie: loginCookie(from: http, redirectURL: payload.url)
+            )
+        case 86101:
+            return QRLoginPollResult(state: .waiting, message: "等待扫码", cookie: nil)
+        case 86090:
+            return QRLoginPollResult(state: .scanned, message: "已扫码，请在手机上确认", cookie: nil)
+        case 86038:
+            return QRLoginPollResult(state: .expired, message: "二维码已过期", cookie: nil)
+        default:
+            return QRLoginPollResult(
+                state: .failed,
+                message: payload.message ?? "登录失败（\(payload.code)）",
+                cookie: nil
+            )
+        }
+    }
+
+    private func rebuildCookie() {
+        if let loginCookie, !loginCookie.isEmpty {
+            cookie = deviceCookie + "; " + loginCookie
+        } else {
+            cookie = deviceCookie
+        }
+    }
+
+    private func cookieValue(named name: String, in header: String?) -> String? {
+        guard let header else { return nil }
+        for item in header.split(separator: ";") {
+            let trimmed = item.trimmingCharacters(in: .whitespaces)
+            guard let index = trimmed.firstIndex(of: "=") else { continue }
+            if trimmed[..<index] == name {
+                return String(trimmed[trimmed.index(after: index)...])
+            }
+        }
+        return nil
+    }
+
+    /// 优先从 Set-Cookie 解析，失败时回退到成功回调 URL 的 query 参数。
+    private func loginCookie(from response: HTTPURLResponse, redirectURL: String?) -> String? {
+        let fields = response.allHeaderFields.reduce(into: [String: String]()) { result, item in
+            if let key = item.key as? String, let value = item.value as? String {
+                result[key] = value
+            }
+        }
+        let url = response.url ?? URL(string: Host.passport.rawValue)!
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
+        let wanted: Set<String> = ["SESSDATA", "bili_jct", "DedeUserID", "DedeUserID__ckMd5", "sid"]
+
+        var pairs = cookies
+            .filter { wanted.contains($0.name) }
+            .map { "\($0.name)=\($0.value)" }
+
+        if pairs.isEmpty,
+           let redirectURL,
+           let components = URLComponents(string: redirectURL),
+           let items = components.queryItems {
+            pairs = items
+                .filter { wanted.contains($0.name) }
+                .map { "\($0.name)=\($0.value ?? "")" }
+        }
+
+        let joined = pairs.joined(separator: "; ")
+        return joined.isEmpty ? nil : joined
+    }
+
     // MARK: - 请求基础设施
 
     private struct Envelope<T: Decodable>: Decodable {
@@ -310,7 +471,7 @@ actor BiliClient {
         let data: T?
     }
 
-    private func object<T: Decodable & Sendable>(
+    func object<T: Decodable & Sendable>(
         _ type: T.Type,
         path: String,
         query: [String: String],
@@ -328,7 +489,7 @@ actor BiliClient {
         return payload
     }
 
-    private func requestData(
+    func requestData(
         _ path: String,
         query: [String: String],
         host: Host,
@@ -352,7 +513,8 @@ actor BiliClient {
             let response = try decoder.decode(SpiResponse.self, from: data)
             guard let buvid3 = response.data?.buvid3, !buvid3.isEmpty else { return }
             let buvid4 = response.data?.buvid4 ?? ""
-            cookie = "buvid3=\(buvid3); buvid4=\(buvid4); CURRENT_FNVAL=4048; b_nut=\(BiliCredentials.installTimestamp)"
+            deviceCookie = "buvid3=\(buvid3); buvid4=\(buvid4); CURRENT_FNVAL=4048; b_nut=\(BiliCredentials.installTimestamp)"
+            rebuildCookie()
             UserDefaults.standard.set(buvid3, forKey: "bili.buvid3")
             UserDefaults.standard.set(buvid4, forKey: "bili.buvid4")
         } catch {
@@ -381,6 +543,21 @@ actor BiliClient {
         host: Host,
         signed: Bool
     ) async throws -> Data {
+        let (data, _) = try await performRequestWithResponse(
+            path,
+            query: query,
+            host: host,
+            signed: signed
+        )
+        return data
+    }
+
+    private func performRequestWithResponse(
+        _ path: String,
+        query: [String: String],
+        host: Host,
+        signed: Bool
+    ) async throws -> (Data, HTTPURLResponse) {
         var parameters = query
         if signed {
             parameters = WbiSigner.sign(parameters, mixinKey: try await mixinKeyValue())
@@ -414,7 +591,7 @@ actor BiliClient {
         guard (200 ..< 300).contains(http.statusCode) else {
             throw BiliAPIError(code: http.statusCode, message: "服务器返回 HTTP \(http.statusCode)")
         }
-        return data
+        return (data, http)
     }
 
     /// Wbi 密钥每天刷新一次；未登录时 `/x/web-interface/nav` 也会返回 `wbi_img`。

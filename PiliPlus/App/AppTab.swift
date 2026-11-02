@@ -2,36 +2,32 @@ import SwiftUI
 
 enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case home
-    case search
-    case history
-    case settings
+    case discover
+    case mine
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .home: "推荐"
-        case .search: "搜索"
-        case .history: "历史"
-        case .settings: "设置"
+        case .home: "首页"
+        case .discover: "发现"
+        case .mine: "我的"
         }
     }
 
     var icon: String {
         switch self {
         case .home: "house"
-        case .search: "magnifyingglass"
-        case .history: "clock.arrow.circlepath"
-        case .settings: "gearshape"
+        case .discover: "square.grid.2x2"
+        case .mine: "person"
         }
     }
 
     var selectedIcon: String {
         switch self {
         case .home: "house.fill"
-        case .search: "magnifyingglass"
-        case .history: "clock.arrow.circlepath"
-        case .settings: "gearshape.fill"
+        case .discover: "square.grid.2x2.fill"
+        case .mine: "person.fill"
         }
     }
 }

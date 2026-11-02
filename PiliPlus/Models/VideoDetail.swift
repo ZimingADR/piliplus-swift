@@ -83,9 +83,26 @@ struct NavResponse: Decodable, Sendable {
         }
 
         let wbiImg: WbiImage?
+        let isLogin: Bool?
+        let mid: Int?
+        let uname: String?
+        let face: String?
+        let money: FlexDouble?
+        let vipStatus: FlexInt?
+        let levelInfo: LevelInfo?
+
+        struct LevelInfo: Decodable, Sendable {
+            let currentLevel: FlexInt?
+
+            enum CodingKeys: String, CodingKey {
+                case currentLevel = "current_level"
+            }
+        }
 
         enum CodingKeys: String, CodingKey {
             case wbiImg = "wbi_img"
+            case isLogin, mid, uname, face, money, vipStatus
+            case levelInfo = "level_info"
         }
     }
 
