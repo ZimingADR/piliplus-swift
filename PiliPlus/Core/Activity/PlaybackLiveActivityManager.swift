@@ -35,8 +35,9 @@ final class PlaybackLiveActivityManager {
 
     func update(_ state: PlaybackActivityAttributes.ContentState) {
         guard let activity else { return }
+        let handle = ActivityHandle(activity: activity)
         Task {
-            await activity.update(ActivityContent(state: state, staleDate: nil))
+            await handle.activity.update(ActivityContent(state: state, staleDate: nil))
         }
     }
 
@@ -44,11 +45,18 @@ final class PlaybackLiveActivityManager {
         guard let activity else { return }
         self.activity = nil
         activityID = nil
+        let handle = ActivityHandle(activity: activity)
         Task {
-            await activity.end(
+            await handle.activity.end(
                 ActivityContent(state: state, staleDate: nil),
                 dismissalPolicy: .immediate
             )
         }
     }
+}
+
+/// `Activity` 本身没有标注 Sendable，但 ActivityKit 的更新/结束接口是线程安全的；
+/// 用显式包装跨越 Task 边界，避免把 App 的 MainActor 状态一并发送出去。
+private struct ActivityHandle: @unchecked Sendable {
+    let activity: Activity<PlaybackActivityAttributes>
 }
