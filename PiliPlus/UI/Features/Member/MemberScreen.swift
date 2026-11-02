@@ -58,7 +58,6 @@ struct MemberScreen: View {
             columns: [
                 GridItem(.flexible(), spacing: 10),
                 GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10),
             ],
             spacing: 10
         ) {
@@ -94,6 +93,18 @@ struct MemberScreen: View {
                     subtitle: "合集系列",
                     systemImage: "rectangle.stack.fill",
                     tint: Glass.mint
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                MemberLikedScreen(mid: mid)
+            } label: {
+                entryCard(
+                    title: "点赞",
+                    subtitle: "最近点赞",
+                    systemImage: "hand.thumbsup.fill",
+                    tint: Glass.violet
                 )
             }
             .buttonStyle(.plain)

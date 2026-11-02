@@ -92,4 +92,44 @@ extension BiliClient {
         let total = lists.page?.total?.value ?? collections.count
         return (collections, page * 20 < total)
     }
+
+    /// UP 主最近点赞的视频。
+    func memberLikedVideos(mid: Int, page: Int) async throws -> ([VideoCard], Bool) {
+        let payload: SpaceLikeArcResponse.Payload = try await object(
+            SpaceLikeArcResponse.Payload.self,
+            path: "/x/v2/space/likearc",
+            query: [
+                "pn": String(max(1, page)),
+                "ps": "20",
+                "vmid": String(mid),
+            ],
+            signed: false
+        )
+
+        let cards: [VideoCard] = (payload.item ?? []).compactMap { item in
+            let param = item.param ?? ""
+            let bvid = param.hasPrefix("BV") ? param : ""
+            let aid = bvid.isEmpty ? Int(param) : nil
+            guard !bvid.isEmpty || aid != nil else { return nil }
+
+            return VideoCard(
+                bvid: bvid,
+                aid: aid,
+                cid: nil,
+                title: (item.title ?? "视频").removingHTMLTags,
+                coverURL: RecommendFeedResponse.Item.httpsURL(item.cover),
+                ownerName: "",
+                ownerFaceURL: nil,
+                duration: item.duration?.value ?? 0,
+                viewCount: item.play?.value ?? 0,
+                danmakuCount: item.danmaku?.value ?? 0,
+                publishedAt: item.ctime.map {
+                    Date(timeIntervalSince1970: TimeInterval($0.value))
+                }
+            )
+        }
+
+        let total = payload.count?.value ?? cards.count
+        return (cards, page * 20 < total)
+    }
 }
