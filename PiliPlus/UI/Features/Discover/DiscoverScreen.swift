@@ -139,6 +139,30 @@ struct DiscoverScreen: View {
             .buttonStyle(.plain)
 
             NavigationLink {
+                PGCScreen()
+            } label: {
+                DiscoverCard(
+                    title: "番剧",
+                    subtitle: "追番与影视",
+                    systemImage: "play.rectangle.fill",
+                    tint: Glass.violet
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                LiveScreen()
+            } label: {
+                DiscoverCard(
+                    title: "直播",
+                    subtitle: "正在直播",
+                    systemImage: "dot.radiowaves.left.and.right",
+                    tint: .red
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 SettingsScreen()
             } label: {
                 DiscoverCard(

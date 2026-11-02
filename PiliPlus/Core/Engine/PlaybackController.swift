@@ -83,6 +83,13 @@ final class PlaybackController {
         let playURL: PlayURLResult
     }
 
+    private struct PGCContext {
+        let season: PGCSeason
+        let episodes: [PGCEpisode]
+    }
+
+    @ObservationIgnored private var pgcContext: PGCContext?
+
     init(
         client: BiliClient,
         settings: SettingsStore,
@@ -333,8 +340,49 @@ final class PlaybackController {
         }
     }
 
-    func stop() {
-        saveProgress(force: true)
+    /// 番剧播放：把季/集映射成统一的 `VideoDetail` 分P结构，复用播放器状态机。
+    func startPGC(season: PGCSeason, episode: PGCEpisode) {
+        sourceCard = nil
+        resetState()
+        loadState = .loading
+        pgcContext = PGCContext(season: season, episodes: season.episodes)
+
+        let pages = season.episodes.enumerated().map { index, item in
+            VideoDetail.Page(
+                cid: item.cid ?? 0,
+                page: index + 1,
+                part: item.displayTitle,
+                duration: FlexInt(item.duration)
+            )
+        }
+        detail = VideoDetail(
+            bvid: episode.bvid,
+            aid: episode.aid ?? 0,
+            cid: episode.cid,
+            title: season.title,
+            pic: season.coverURL?.absoluteString,
+            desc: season.evaluate,
+            duration: FlexInt(pages.reduce(0) { $0 + ($1.duration?.value ?? 0) }),
+            pubdate: nil,
+            tname: "番剧",
+            owner: VideoDetail.Owner(mid: nil, name: season.title, face: nil),
+            stat: nil,
+            pages: pages
+        )
+        currentPageIndex = season.episodes.firstIndex(of: episode) ?? 0
+
+        loadTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await self.prepare(pageIndex: self.currentPageIndex, startAt: nil)
+            } catch {
+                if Cancellation.isCancellation(error) { return }
+                self.fail(error)
+            }
+        }
+    }
+
+    func stop() {        saveProgress(force: true)
         pollTask?.cancel()
         loadTask?.cancel()
         danmakuTask?.cancel()
@@ -434,12 +482,21 @@ final class PlaybackController {
         let page = pages[pageIndex]
 
         let quality = clampedQuality(settings.defaultQuality)
-        let result = try await client.playURL(
-            bvid: detail.bvid,
-            aid: detail.aid,
-            cid: page.cid,
-            quality: quality
-        )
+        let result: PlayURLResult
+        if let pgc = pgcContext, pgc.episodes.indices.contains(pageIndex) {
+            result = try await client.pgcPlayURL(
+                episode: pgc.episodes[pageIndex],
+                seasonID: pgc.season.seasonID,
+                quality: quality
+            )
+        } else {
+            result = try await client.playURL(
+                bvid: detail.bvid,
+                aid: detail.aid,
+                cid: page.cid,
+                quality: quality
+            )
+        }
 
         guard let videoTrack = result.videoTrack(
             preferring: quality,
@@ -462,7 +519,13 @@ final class PlaybackController {
         )
         didPreparePlayback = false
         preparePlaybackIfNeeded()
-        loadDanmaku(cid: page.cid, aid: detail.aid, duration: result.duration)
+        let danmakuPID: Int
+        if let pgc = pgcContext, pgc.episodes.indices.contains(pageIndex) {
+            danmakuPID = pgc.episodes[pageIndex].id
+        } else {
+            danmakuPID = detail.aid
+        }
+        loadDanmaku(cid: page.cid, pid: danmakuPID, duration: result.duration)
     }
 
     private func preparePlaybackIfNeeded() {
@@ -600,12 +663,12 @@ final class PlaybackController {
 
     // MARK: - 弹幕
 
-    private func loadDanmaku(cid: Int, aid: Int, duration: Double) {
+    private func loadDanmaku(cid: Int, pid: Int, duration: Double) {
         danmakuTask?.cancel()
         danmakuTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let items = try await client.danmakuItems(cid: cid, aid: aid, duration: duration)
+                let items = try await client.danmakuItems(cid: cid, pid: pid, duration: duration)
                 guard !Task.isCancelled else { return }
                 self.danmakuItems = items
             } catch {
@@ -669,12 +732,14 @@ final class PlaybackController {
         pollTask?.cancel()
         danmakuTask?.cancel()
         engine.stop()
+        pgcContext = nil
         pendingStream = nil
         hasStartedPlayback = false
         didPreparePlayback = false
         loadState = .loading
         errorMessage = nil
         danmakuItems = []
+        availableQualities = []
         currentTime = 0
         duration = 0
         isPlaying = false

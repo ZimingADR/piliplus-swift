@@ -278,7 +278,8 @@ actor BiliClient {
 
     // MARK: - 弹幕
 
-    func danmakuItems(cid: Int, aid: Int, duration: Double) async throws -> [DanmakuItem] {
+    /// - Parameter pid: UGC 为 aid，PG C 番剧为 ep_id。
+    func danmakuItems(cid: Int, pid: Int, duration: Double) async throws -> [DanmakuItem] {
         let segmentCount = min(max(1, Int((duration / 360).rounded(.up))), 20)
         let segments = try await withThrowingTaskGroup(of: [DanmakuItem].self) { group in
             for index in 1 ... segmentCount {
@@ -288,7 +289,7 @@ actor BiliClient {
                         query: [
                             "type": "1",
                             "oid": String(cid),
-                            "pid": String(aid),
+                            "pid": String(pid),
                             "segment_index": String(index),
                         ],
                         host: .api,

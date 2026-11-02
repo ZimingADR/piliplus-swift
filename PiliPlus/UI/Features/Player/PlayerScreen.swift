@@ -699,7 +699,9 @@ struct PlayerScreen: View {
         )
         self.controller = controller
 
-        if let card = request.card {
+        if let season = request.pgcSeason, let episode = request.pgcEpisode {
+            controller.startPGC(season: season, episode: episode)
+        } else if let card = request.card {
             controller.start(card: card)
         } else {
             controller.start(bvid: request.bvid, aid: request.aid, cid: request.cid)

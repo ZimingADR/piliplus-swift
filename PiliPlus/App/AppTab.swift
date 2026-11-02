@@ -43,12 +43,16 @@ struct PlayerRequest: Identifiable, Equatable {
     let aid: Int?
     let cid: Int?
     let card: VideoCard?
+    let pgcSeason: PGCSeason?
+    let pgcEpisode: PGCEpisode?
 
     init(card: VideoCard) {
         bvid = card.bvid
         aid = card.aid
         cid = card.cid
         self.card = card
+        pgcSeason = nil
+        pgcEpisode = nil
     }
 
     init(bvid: String, aid: Int?, cid: Int?) {
@@ -56,6 +60,17 @@ struct PlayerRequest: Identifiable, Equatable {
         self.aid = aid
         self.cid = cid
         card = nil
+        pgcSeason = nil
+        pgcEpisode = nil
+    }
+
+    init(pgcSeason: PGCSeason, episode: PGCEpisode) {
+        bvid = episode.bvid
+        aid = episode.aid
+        cid = episode.cid
+        card = nil
+        self.pgcSeason = pgcSeason
+        pgcEpisode = episode
     }
 
     static func == (lhs: PlayerRequest, rhs: PlayerRequest) -> Bool {

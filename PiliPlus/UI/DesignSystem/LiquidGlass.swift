@@ -219,9 +219,9 @@ struct GlassSegmentedControl<Value: Hashable>: View {
 
 struct LiquidSectionHeader: View {
     let title: String
-    var subtitle: String?
-    var actionTitle: String?
-    var action: (() -> Void)?
+    var subtitle: String? = nil
+    var actionTitle: String? = nil
+    var action: (() -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
