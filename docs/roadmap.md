@@ -46,7 +46,7 @@
 | `member_profile` / `member_favorite` / `member_like_arc` 等 | — | ⏳ |
 | `member_search` | — | ⏳ |
 | `popular_precious` | `PreciousScreen` + `BiliClient.preciousVideos` | ✅ 入站必刷分页 |
-| `popular_series`（每周必看） | — | ⏳ |
+| `popular_series`（每周必看） | `WeeklyScreen` + `popularSeriesList/Videos` | ✅ 系列切换 + 当期网格 |
 
 ## Group 4 明细
 
