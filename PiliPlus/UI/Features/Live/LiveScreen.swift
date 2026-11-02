@@ -9,6 +9,7 @@ struct LiveScreen: View {
     @State private var isLoadingMore = false
     @State private var hasMore = true
     @State private var phase: Phase = .idle
+    @State private var showsSearch = false
 
     private enum Phase: Equatable {
         case idle
@@ -24,6 +25,19 @@ struct LiveScreen: View {
         }
         .navigationTitle("直播")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showsSearch = true
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+                .accessibilityLabel("搜索直播")
+            }
+        }
+        .sheet(isPresented: $showsSearch) {
+            LiveSearchSheet()
+        }
         .task { await loadInitial() }
     }
 

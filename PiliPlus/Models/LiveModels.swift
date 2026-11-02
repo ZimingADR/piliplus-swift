@@ -178,3 +178,36 @@ extension LivePlayInfoResponse.Payload {
         return nil
     }
 }
+
+// MARK: - 直播搜索
+
+struct LiveSearchResponse: Decodable, Sendable {
+    struct Payload: Decodable, Sendable {
+        struct Item: Decodable, Sendable {
+            let roomID: FlexInt?
+            let uname: String?
+            let title: String?
+            let cover: String?
+            let online: FlexInt?
+            let areaName: String?
+
+            enum CodingKeys: String, CodingKey {
+                case uname, title, cover, online
+                case roomID = "roomid"
+                case areaName = "area_v2_name"
+            }
+        }
+
+        let result: [Item]?
+        let numResults: FlexInt?
+
+        enum CodingKeys: String, CodingKey {
+            case result
+            case numResults = "numResults"
+        }
+    }
+
+    let code: Int
+    let message: String?
+    let data: Payload?
+}
