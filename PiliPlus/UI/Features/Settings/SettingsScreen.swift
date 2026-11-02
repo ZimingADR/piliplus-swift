@@ -19,6 +19,14 @@ struct SettingsScreen: View {
         @Bindable var settings = environment.settings
 
         List {
+            Section {
+                NavigationLink {
+                    SettingsSearchScreen()
+                } label: {
+                    Label("搜索设置", systemImage: "magnifyingglass")
+                }
+            }
+
             Section("播放") {
                 Picker("默认清晰度", selection: $settings.defaultQuality) {
                     ForEach(qualityOptions, id: \.self) { quality in
