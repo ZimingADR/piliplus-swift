@@ -22,8 +22,8 @@
 | `login`（短信 / 密码） | — | ⏳ Web 端限制，暂缓 |
 | `mine` | `UI/Features/Account/MineScreen.swift` | ✅ 资料 / 统计 / 快捷入口 |
 | `fav` / `fav_detail` | `UI/Features/Favorites/*` | ✅ 列表 + 分页详情 |
-| `fav_search` | — | ⏳ |
-| `fav_create` / `fav_sort` / `fav_folder_sort` | — | ⏳ |
+| `fav_create` | `FavoritesScreen` 工具栏 | ✅ 新建公开收藏夹 |
+| `fav_sort` / `fav_folder_sort` / `fav_search` | — | ⏳ |
 | `main_reply` | `UI/Features/Comments/CommentsSheet.swift` | ✅ 主楼分页 + 发表 + 点赞 |
 | `my_reply`（楼中楼） | `UI/Features/Comments/RepliesSheet.swift` | ✅ 子回复分页 + 回复输入 |
 | `emote` | `EmoteCatalog` + 评论表情面板 | ✅ 常用表情码插入 |
@@ -53,6 +53,7 @@
 | `dynamics` | `UI/Features/Dynamics/*` | ✅ 关注动态、分页、图文/视频/专栏卡片 |
 | `dynamics_detail` | `DynamicDetailScreen` | ✅ 单条动态展开（评论接入 ⏳） |
 | `article` | `UI/Features/Article/ArticleScreen.swift` | ✅ WKWebView 渲染 + 原生头部 |
+| 动态互动 | 卡片点赞 + `RepostSheet` 转发 | ✅ 点赞 / 转发（发布原动态 ⏳） |
 | `dynamics_tab` / `dynamics_topic` / `dynamics_create` | — | ⏳ |
 | `article_list` | — | ⏳ |
 | `group_panel` / `msg_feed_top` / `fan` | — | ⏳ |
