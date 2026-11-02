@@ -22,7 +22,6 @@ Package.resolved
 *.dSYM
 *.dSYM.zip
 *.xcarchive
-altstore.json
 
 # Agent workspace metadata (local skills, not part of the project)
 .dsh/

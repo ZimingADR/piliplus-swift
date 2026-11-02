@@ -1,0 +1,48 @@
+{
+  "name": "PiliPlus",
+  "subtitle": "纯 Swift 原生 B 站客户端 · Group 1",
+  "description": "PiliPlus 的 SwiftUI 原生重写版。Group 1 提供无需登录的推荐流、DASH 高清播放、BewlyCat 智能音量平衡、CoreAnimation 弹幕、搜索、画中画与断点续播。",
+  "identifier": "io.github.zimingadr.piliplus.source",
+  "sourceURL": "https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/altstore.json",
+  "website": "https://github.com/ZimingADR/piliplus-swift",
+  "iconURL": "https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/PiliPlus/Supporting/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
+  "tintColor": "#FB7299",
+  "featuredApps": [
+    "com.zimingadr.piliplus"
+  ],
+  "apps": [
+    {
+      "name": "PiliPlus",
+      "bundleIdentifier": "com.zimingadr.piliplus",
+      "developerName": "ZimingADR",
+      "subtitle": "纯 Swift 原生 B 站客户端",
+      "localizedDescription": "使用 SwiftUI + Swift 6 + MPVKit 编写的第三方 BiliBili 客户端，融合 BewlyCat 智能音量平衡（跨视频响度对齐 + 视频内动态平滑 + -1.0 dBFS 峰值防爆音），支持推荐流、搜索、弹幕、后台播放、画中画与断点续播。",
+      "iconURL": "https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/PiliPlus/Supporting/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
+      "tintColor": "#FB7299",
+      "category": "entertainment",
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "buildVersion": "1",
+          "buildNumber": "1",
+          "date": "2026-11-02T04:48:11Z",
+          "localizedDescription": "PiliPlus iOS 0.1.0（Group 1 MVP）\n- 纯 Swift 原生重写：SwiftUI + Swift 6 + MPVKit\n- 无需登录：推荐流 / 搜索 / 热搜 / 播放历史\n- DASH 双轨播放、清晰度切换、手势与断点续播\n- BewlyCat 智能音量平衡（volume + dynaudnorm + alimiter）\n- CoreAnimation 弹幕、后台播放与画中画\n- 本 IPA 未签名，SideStore / AltStore 会在设备端重签后安装",
+          "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.1.0/PiliPlus-0.1.0-unsigned.ipa",
+          "size": 12587222,
+          "sha256": "ba94c410b769f5c42cb5aa2dae256cda0cb30722bd660ef5c55b10dbbfcc5cde",
+          "minOSVersion": "18.0"
+        }
+      ],
+      "version": "0.1.0",
+      "versionDate": "2026-11-02T04:48:11Z",
+      "versionDescription": "PiliPlus iOS 0.1.0（Group 1 MVP）\n- 纯 Swift 原生重写：SwiftUI + Swift 6 + MPVKit\n- 无需登录：推荐流 / 搜索 / 热搜 / 播放历史\n- DASH 双轨播放、清晰度切换、手势与断点续播\n- BewlyCat 智能音量平衡（volume + dynaudnorm + alimiter）\n- CoreAnimation 弹幕、后台播放与画中画\n- 本 IPA 未签名，SideStore / AltStore 会在设备端重签后安装",
+      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.1.0/PiliPlus-0.1.0-unsigned.ipa",
+      "size": 12587222
+    }
+  ],
+  "news": []
+}
