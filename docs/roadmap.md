@@ -25,14 +25,14 @@
 | `fav_create` | `FavoritesScreen` 工具栏 | ✅ 新建公开收藏夹 |
 | `fav_search` | `FavoriteDetailScreen` searchable + `keyword` 参数 | ✅ 收藏夹内搜索 |
 | `fav_sort` | `FavoriteSortOrder` + `order` 参数 | ✅ 收藏时间/播放量/投稿时间 |
-| `fav_folder_sort` | — | ⏳ |
+| `fav_folder_sort` | `FavoriteFolderSort` 本地排序 | ✅ 默认/名称/内容数 |
 | `main_reply` | `UI/Features/Comments/CommentsSheet.swift` | ✅ 主楼分页 + 发表 + 点赞 |
 | `my_reply`（楼中楼） | `UI/Features/Comments/RepliesSheet.swift` | ✅ 子回复分页 + 回复输入 |
 | `emote` | `EmoteCatalog` + 评论表情面板 | ✅ 常用表情码插入 |
 | `follow` | `UI/Features/Follow/*`、`MemberScreen` 关注按钮 | ✅ 列表 + 关注 / 取关 |
 | `follow_search` | `FollowScreen` 本地过滤 | ✅ 昵称 / 签名搜索（服务端搜索 ⏳） |
 | `danmaku_block` | `DanmakuFilter` + 弹幕设置屏蔽词 | ✅ 本地关键词过滤（正则/BAS 屏蔽 ⏳） |
-| `login_devices` / `login_log` | — | ⏳ |
+| `login_devices` / `login_log` | `LoginSecurityScreen` + passport/member 接口 | ✅ 设备列表 / 登录历史 |
 | `webview`（Geetest） | — | ⏳ 仅在触发风控时需要 |
 | 视频互动 | 播放器「更多」菜单 | ✅ 点赞 / 投币 / 收藏 / 稍后再看 / 关注 |
 
