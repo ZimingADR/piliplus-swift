@@ -8,6 +8,10 @@ struct DynamicCard: View {
     var onOpenVideo: (VideoCard) -> Void
     var onOpenArticle: (Int) -> Void
     var onOpenDetail: (DynamicItem) -> Void
+    var onLike: ((Bool) -> Void)? = nil
+    var onRepost: (() -> Void)? = nil
+
+    @State private var isLiked = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -146,20 +150,47 @@ struct DynamicCard: View {
 
     private var stats: some View {
         HStack(spacing: 20) {
-            statItem(icon: "arrowshape.turn.up.right", value: item.forwardCount)
-            statItem(icon: "text.bubble", value: item.commentCount)
-            statItem(icon: "hand.thumbsup", value: item.likeCount)
+            Button {
+                onRepost?()
+            } label: {
+                statItem(icon: "arrowshape.turn.up.right", value: item.forwardCount)
+            }
+            .buttonStyle(.plain)
+            .disabled(onRepost == nil)
+
+            Button {
+                onOpenDetail(item)
+            } label: {
+                statItem(icon: "text.bubble", value: item.commentCount)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                isLiked.toggle()
+                onLike?(isLiked)
+            } label: {
+                statItem(
+                    icon: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup",
+                    value: max(0, item.likeCount + (isLiked ? 1 : 0)),
+                    highlighted: isLiked
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(onLike == nil)
+
+            Spacer(minLength: 0)
         }
         .font(.caption2)
         .foregroundStyle(.tertiary)
     }
 
-    private func statItem(icon: String, value: Int) -> some View {
+    private func statItem(icon: String, value: Int, highlighted: Bool = false) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
             Text(value > 0 ? VideoCard.formatCount(value) : " ")
                 .monospacedDigit()
         }
+        .foregroundStyle(highlighted ? Glass.pink : Color.secondary)
     }
 
     private static func relativeTime(_ date: Date) -> String {

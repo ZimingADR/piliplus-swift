@@ -11,6 +11,8 @@ struct DynamicsScreen: View {
     @State private var model: DynamicsModel?
     @State private var showsLogin = false
     @State private var articleTarget: ArticleTarget?
+    @State private var repostTarget: DynamicItem?
+    @State private var actionError: String?
 
     var body: some View {
         ZStack {
@@ -35,6 +37,20 @@ struct DynamicsScreen: View {
             await model?.loadInitial()
         }
         .sheet(isPresented: $showsLogin) { LoginScreen() }
+        .sheet(item: $repostTarget) { item in
+            RepostSheet(item: item)
+        }
+        .alert(
+            "操作失败",
+            isPresented: Binding(
+                get: { actionError != nil },
+                set: { if !$0 { actionError = nil } }
+            )
+        ) {
+            Button("好", role: .cancel) { actionError = nil }
+        } message: {
+            Text(actionError ?? "")
+        }
         .navigationDestination(item: $articleTarget) { target in
             ArticleScreen(cvid: target.id)
         }
@@ -93,6 +109,16 @@ struct DynamicsScreen: View {
                             onOpenDetail: { dynamic in
                                 articleTarget = nil
                                 detailPath = DynamicTarget(id: dynamic.id)
+                            },
+                            onLike: { liked in
+                                Task { await like(item, liked: liked) }
+                            },
+                            onRepost: {
+                                guard environment.account.isLoggedIn else {
+                                    showsLogin = true
+                                    return
+                                }
+                                repostTarget = item
                             }
                         )
                         .onAppear {
@@ -108,6 +134,18 @@ struct DynamicsScreen: View {
             }
         } else {
             LoadingStateView(style: .loading)
+        }
+    }
+
+    private func like(_ item: DynamicItem, liked: Bool) async {
+        guard environment.account.isLoggedIn else {
+            showsLogin = true
+            return
+        }
+        do {
+            try await environment.client.likeDynamic(id: item.id, like: liked)
+        } catch {
+            actionError = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 
@@ -205,4 +243,70 @@ struct DynamicDetailScreen: View {
 
 struct DynamicTarget: Identifiable, Hashable {
     let id: String
+}
+
+/// 转发动态浮层。
+struct RepostSheet: View {
+    let item: DynamicItem
+
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var text = ""
+    @State private var isSending = false
+    @State private var errorMessage: String?
+    @State private var showsLogin = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("转发内容") {
+                    TextField("说点什么…", text: $text, axis: .vertical)
+                        .lineLimit(2 ... 5)
+                }
+
+                Section {
+                    Button {
+                        Task { await send() }
+                    } label: {
+                        Label("转发", systemImage: "arrowshape.turn.up.right")
+                    }
+                    .disabled(isSending)
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                } footer: {
+                    Text("转发后会出现在你的动态中，并保留原动态引用。")
+                }
+            }
+            .navigationTitle("转发动态")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .sheet(isPresented: $showsLogin) { LoginScreen() }
+    }
+
+    private func send() async {
+        guard environment.account.isLoggedIn else {
+            showsLogin = true
+            return
+        }
+        isSending = true
+        errorMessage = nil
+        do {
+            try await environment.client.repostDynamic(id: item.id, content: text)
+            dismiss()
+        } catch {
+            errorMessage = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+        isSending = false
+    }
 }

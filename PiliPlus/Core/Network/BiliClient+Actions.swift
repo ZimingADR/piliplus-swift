@@ -1,0 +1,52 @@
+import Foundation
+
+/// 互动类写操作：动态点赞/转发、收藏夹创建。
+extension BiliClient {
+    func likeDynamic(id: String, like: Bool) async throws {
+        try await performFormAction(
+            "/x/dynamic/feed/dyn/thumb",
+            form: [
+                "dyn_id_str": id,
+                "up": like ? "1" : "2",
+            ]
+        )
+    }
+
+    func repostDynamic(id: String, content: String) async throws {
+        try await performFormAction(
+            "/x/dynamic/feed/dyn/repost",
+            form: [
+                "dyn_id_str": id,
+                "content": content,
+            ]
+        )
+    }
+
+    func createFavoriteFolder(title: String) async throws {
+        try await performFormAction(
+            "/x/v3/fav/folder/add",
+            form: [
+                "title": title,
+                "privacy": "0",
+                "intro": "",
+            ]
+        )
+    }
+
+    private func performFormAction(
+        _ path: String,
+        form: [String: String]
+    ) async throws {
+        guard let csrf = csrfToken() else {
+            throw BiliAPIError(code: -101, message: "请先登录")
+        }
+        var body = form
+        body["csrf"] = csrf
+
+        let data = try await postForm(path, form: body)
+        let response = try JSONDecoder().decode(ActionResponse.self, from: data)
+        guard response.code == 0 else {
+            throw BiliAPIError(code: response.code, message: response.message ?? "操作失败")
+        }
+    }
+}

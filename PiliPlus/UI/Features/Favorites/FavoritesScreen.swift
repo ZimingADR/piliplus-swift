@@ -6,6 +6,10 @@ struct FavoritesScreen: View {
     @State private var folders: [FavoriteFolder] = []
     @State private var phase: Phase = .idle
     @State private var showsLogin = false
+    @State private var showsCreate = false
+    @State private var newFolderTitle = ""
+    @State private var isCreating = false
+    @State private var createError: String?
 
     private enum Phase: Equatable {
         case idle
@@ -22,8 +26,44 @@ struct FavoritesScreen: View {
         }
         .navigationTitle("收藏夹")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    guard environment.account.isLoggedIn else {
+                        showsLogin = true
+                        return
+                    }
+                    newFolderTitle = ""
+                    showsCreate = true
+                } label: {
+                    Image(systemName: "folder.badge.plus")
+                }
+                .accessibilityLabel("新建收藏夹")
+            }
+        }
         .task { await load() }
         .sheet(isPresented: $showsLogin) { LoginScreen() }
+        .alert("新建收藏夹", isPresented: $showsCreate) {
+            TextField("收藏夹名称", text: $newFolderTitle)
+            Button("创建") {
+                Task { await createFolder() }
+            }
+            .disabled(isCreating)
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("新收藏夹默认为公开。")
+        }
+        .alert(
+            "创建失败",
+            isPresented: Binding(
+                get: { createError != nil },
+                set: { if !$0 { createError = nil } }
+            )
+        ) {
+            Button("好", role: .cancel) { createError = nil }
+        } message: {
+            Text(createError ?? "")
+        }
     }
 
     @ViewBuilder
@@ -96,8 +136,25 @@ struct FavoritesScreen: View {
         .liquidGlass(cornerRadius: 20, elevation: 0.7)
     }
 
-    private func load() async {
+    private func createFolder() async {
+        let title = newFolderTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
         guard environment.account.isLoggedIn else {
+            showsLogin = true
+            return
+        }
+
+        isCreating = true
+        do {
+            try await environment.client.createFavoriteFolder(title: title)
+            await load()
+        } catch {
+            createError = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+        isCreating = false
+    }
+
+    private func load() async {        guard environment.account.isLoggedIn else {
             phase = .requiresLogin
             return
         }
