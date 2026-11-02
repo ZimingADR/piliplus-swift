@@ -117,11 +117,13 @@ final class SearchModel {
                 results.append(contentsOf: result.videos.filter { !existing.contains($0.id) })
             }
             phase = result.videos.isEmpty && reset ? .failed("没有找到相关视频") : .loaded
-        } catch is CancellationError {
-            return
         } catch {
+            if Cancellation.isCancellation(error) {
+                isLoadingMore = false
+                return
+            }
             if !reset { page -= 1 }
-            phase = .failed((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
+            phase = .failed((error as? any LocalizedError)?.errorDescription ?? error.localizedDescription)
         }
         isLoadingMore = false
     }

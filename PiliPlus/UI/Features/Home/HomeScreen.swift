@@ -22,13 +22,23 @@ struct HomeScreen: View {
 
                 if let model {
                     switch model.phase {
-                    case .idle, .loading where model.videos.isEmpty:
+                    case .idle:
                         LoadingStateView(style: .loading)
-                    case .failed(let message) where model.videos.isEmpty:
-                        LoadingStateView(style: .failure(message)) {
-                            Task { await model.refresh() }
+                    case .loading:
+                        if model.videos.isEmpty {
+                            LoadingStateView(style: .loading)
+                        } else {
+                            feed(model)
                         }
-                    default:
+                    case .failed(let message):
+                        if model.videos.isEmpty {
+                            LoadingStateView(style: .failure(message)) {
+                                Task { await model.refresh() }
+                            }
+                        } else {
+                            feed(model)
+                        }
+                    case .loaded:
                         feed(model)
                     }
                 } else {
@@ -51,14 +61,6 @@ struct HomeScreen: View {
                 }
                 .accessibilityLabel("刷新推荐")
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    environment.settings.appearance = environment.settings.appearance == .dark ? .light : .dark
-                } label: {
-                    Image(systemName: environment.settings.appearance == .dark ? "sun.max" : "moon")
-                }
-                .accessibilityLabel("切换深浅色")
-            }
         }
         .task {
             if model == nil {
@@ -73,9 +75,9 @@ struct HomeScreen: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("为你推荐")
-                .font(.largeTitle.weight(.bold))
-            Text("无需登录 · 下拉刷新 · 上拉加载更多")
+            Text("今日推荐")
+                .font(.title2.weight(.semibold))
+            Text("无需登录 · 下拉刷新 · 上拉加载")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -50,7 +50,9 @@ open PiliPlus.xcodeproj
 3. 模拟器 Debug 编译（`CODE_SIGNING_ALLOWED=NO`）
 4. 在可用 iPhone 模拟器上运行 Swift Testing 单元测试
 
-后续会追加 `release.yml`：归档未签名 `.ipa` 并发布到 GitHub Releases。
+`.github/workflows/release.yml` 在推送 `v*` tag（或手动触发）时归档未签名
+`.ipa`，计算 SHA-256 并发布到 GitHub Releases。未签名产物需要自行用 AltStore /
+SideStore / TrollStore 或开发者证书重签后安装。
 
 ## 目录结构
 

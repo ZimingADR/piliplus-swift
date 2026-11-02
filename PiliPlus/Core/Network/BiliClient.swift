@@ -65,7 +65,8 @@ actor BiliClient {
 
     private let session: URLSession
     private let decoder = JSONDecoder()
-    private let cookie: String
+    private var cookie: String
+    private var didBootstrapBuvid = false
     private var mixinKey: String?
     private var mixinKeyDate: Date?
 
@@ -328,6 +329,53 @@ actor BiliClient {
     }
 
     private func requestData(
+        _ path: String,
+        query: [String: String],
+        host: Host,
+        signed: Bool
+    ) async throws -> Data {
+        await bootstrapBuvidIfNeeded()
+        return try await performRequest(path, query: query, host: host, signed: signed)
+    }
+
+    /// 首次请求前向 B 站换取真实的 `buvid3` / `buvid4`，降低匿名接口的风控概率。
+    private func bootstrapBuvidIfNeeded() async {
+        guard !didBootstrapBuvid else { return }
+        didBootstrapBuvid = true
+        do {
+            let data = try await performRequest(
+                "/x/frontend/finger/spi",
+                query: [:],
+                host: .api,
+                signed: false
+            )
+            let response = try decoder.decode(SpiResponse.self, from: data)
+            guard let buvid3 = response.data?.buvid3, !buvid3.isEmpty else { return }
+            let buvid4 = response.data?.buvid4 ?? ""
+            cookie = "buvid3=\(buvid3); buvid4=\(buvid4); CURRENT_FNVAL=4048; b_nut=\(BiliCredentials.installTimestamp)"
+            UserDefaults.standard.set(buvid3, forKey: "bili.buvid3")
+            UserDefaults.standard.set(buvid4, forKey: "bili.buvid4")
+        } catch {
+            // 获取失败时沿用本地生成的设备标识，不阻塞主流程。
+        }
+    }
+
+    private struct SpiResponse: Decodable {
+        struct Payload: Decodable {
+            let buvid3: String?
+            let buvid4: String?
+
+            enum CodingKeys: String, CodingKey {
+                case buvid3 = "b_3"
+                case buvid4 = "b_4"
+            }
+        }
+
+        let code: Int
+        let data: Payload?
+    }
+
+    private func performRequest(
         _ path: String,
         query: [String: String],
         host: Host,

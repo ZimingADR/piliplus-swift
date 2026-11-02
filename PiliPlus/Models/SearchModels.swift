@@ -130,9 +130,9 @@ struct SuggestResponse: Decodable, Sendable {
     let data: Payload?
 }
 
-extension SuggestResponse {
+extension SuggestResponse.Payload {
     var suggestions: [String] {
-        (data?.result?.tag ?? []).compactMap { tag in
+        (result?.tag ?? []).compactMap { tag in
             let value = tag.value ?? tag.name
             guard let value, !value.isEmpty else { return nil }
             return value

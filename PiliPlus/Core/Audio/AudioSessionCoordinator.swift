@@ -51,7 +51,7 @@ final class AudioSessionCoordinator {
         isPlaying: Bool,
         coverURL: URL?
     ) {
-        var info: [String: Any] = [
+        let info: [String: Any] = [
             MPMediaItemPropertyTitle: title,
             MPMediaItemPropertyArtist: artist,
             MPMediaItemPropertyPlaybackDuration: max(duration, 0),

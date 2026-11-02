@@ -202,9 +202,8 @@ final class PlaybackController {
                 let pageIndex = self.preferredPageIndex(for: card, in: detail)
                 self.currentPageIndex = pageIndex
                 try await self.prepare(pageIndex: pageIndex, startAt: nil)
-            } catch is CancellationError {
-                return
             } catch {
+                if Cancellation.isCancellation(error) { return }
                 self.fail(error)
             }
         }
@@ -226,9 +225,8 @@ final class PlaybackController {
                 }
                 self.currentPageIndex = pageIndex
                 try await self.prepare(pageIndex: pageIndex, startAt: nil)
-            } catch is CancellationError {
-                return
             } catch {
+                if Cancellation.isCancellation(error) { return }
                 self.fail(error)
             }
         }
@@ -300,9 +298,8 @@ final class PlaybackController {
                     startAt: resumePosition
                 )
                 self.updateLoudnessSummary()
-            } catch is CancellationError {
-                return
             } catch {
+                if Cancellation.isCancellation(error) { return }
                 self.fail(error)
             }
         }
@@ -318,9 +315,8 @@ final class PlaybackController {
             guard let self else { return }
             do {
                 try await self.prepare(pageIndex: index, startAt: 0)
-            } catch is CancellationError {
-                return
             } catch {
+                if Cancellation.isCancellation(error) { return }
                 self.fail(error)
             }
         }
@@ -583,8 +579,8 @@ final class PlaybackController {
         isPlaying = false
     }
 
-    private func fail(_ error: Error) {
-        let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+    private func fail(_ error: any Error) {
+        let message = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
         loadState = .failed(message)
         errorMessage = message
     }

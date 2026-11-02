@@ -69,16 +69,17 @@ final class HomeFeedModel {
                 if reset { break }
             }
             phase = .loaded
-        } catch is CancellationError {
-            isLoadingMore = false
-            return
         } catch {
+            if Cancellation.isCancellation(error) {
+                isLoadingMore = false
+                return
+            }
             phase = .failed(Self.message(for: error))
         }
         isLoadingMore = false
     }
 
-    private static func message(for error: Error) -> String {
-        (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+    private static func message(for error: any Error) -> String {
+        (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
     }
 }
