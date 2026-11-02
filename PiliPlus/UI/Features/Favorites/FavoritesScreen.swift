@@ -183,6 +183,7 @@ struct FavoriteDetailScreen: View {
     @State private var hasMore = false
     @State private var isLoadingMore = false
     @State private var phase: LoadPhase = .idle
+    @State private var keyword = ""
 
     private enum LoadPhase: Equatable {
         case idle
@@ -198,6 +199,15 @@ struct FavoriteDetailScreen: View {
         }
         .navigationTitle(folder.title)
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $keyword, prompt: "搜索收藏内容")
+        .onSubmit(of: .search) {
+            Task { await loadInitial() }
+        }
+        .onChange(of: keyword) { _, newValue in
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Task { await loadInitial() }
+            }
+        }
         .task { await loadInitial() }
     }
 
@@ -211,6 +221,13 @@ struct FavoriteDetailScreen: View {
                 Task { await loadInitial() }
             }
         case .loaded:
+            if videos.isEmpty {
+                ContentUnavailableView {
+                    Label("没有找到收藏内容", systemImage: "bookmark")
+                } description: {
+                    Text(keyword.isEmpty ? "收藏夹还是空的。" : "换个关键词试试。")
+                }
+            } else {
             ScrollView {
                 VStack(spacing: 16) {
                     VideoPosterGrid(
@@ -235,13 +252,18 @@ struct FavoriteDetailScreen: View {
                 .padding(.horizontal, Theme.screenPadding)
                 .padding(.vertical, 12)
             }
+            }
         }
     }
 
     private func loadInitial() async {
         phase = .loading
         do {
-            let result = try await environment.client.favoritePage(mediaID: folder.id, page: 1)
+            let result = try await environment.client.favoritePage(
+                mediaID: folder.id,
+                page: 1,
+                keyword: keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
             videos = result.videos
             page = 1
             hasMore = result.hasMore
@@ -257,7 +279,12 @@ struct FavoriteDetailScreen: View {
         isLoadingMore = true
         do {
             let next = page + 1
-            let result = try await environment.client.favoritePage(mediaID: folder.id, page: next)
+            let workspaceKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+            let result = try await environment.client.favoritePage(
+                mediaID: folder.id,
+                page: next,
+                keyword: workspaceKeyword
+            )
             let existing = Set(videos.map(\.id))
             videos.append(contentsOf: result.videos.filter { !existing.contains($0.id) })
             page = next

@@ -9,6 +9,7 @@ struct FollowScreen: View {
     @State private var isLoading = false
     @State private var phase: Phase = .idle
     @State private var showsLogin = false
+    @State private var keyword = ""
 
     private enum Phase: Equatable {
         case idle
@@ -25,8 +26,17 @@ struct FollowScreen: View {
         }
         .navigationTitle("关注")
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $keyword, prompt: "搜索关注")
         .task { await loadInitial() }
         .sheet(isPresented: $showsLogin) { LoginScreen() }
+    }
+
+    private var filteredUsers: [FollowUser] {
+        let query = keyword.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !query.isEmpty else { return users }
+        return users.filter {
+            $0.name.lowercased().contains(query) || $0.sign.lowercased().contains(query)
+        }
     }
 
     @ViewBuilder
@@ -54,10 +64,16 @@ struct FollowScreen: View {
                 } description: {
                     Text("在 UP 主空间点击关注即可。")
                 }
+            } else if filteredUsers.isEmpty {
+                ContentUnavailableView {
+                    Label("没有匹配的关注", systemImage: "magnifyingglass")
+                } description: {
+                    Text("换个关键词试试。")
+                }
             } else {
                 ScrollView {
                     LazyVStack(spacing: 8) {
-                        ForEach(users) { user in
+                        ForEach(filteredUsers) { user in
                             NavigationLink {
                                 MemberScreen(mid: user.mid)
                             } label: {
