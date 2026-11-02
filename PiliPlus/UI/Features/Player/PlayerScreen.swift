@@ -465,7 +465,10 @@ struct PlayerScreen: View {
                 }
             case .comments:
                 if let aid = controller.detail?.aid {
-                    CommentsSheet(aid: aid, videoTitle: controller.title)
+                    CommentsSheet(
+                        source: .video(aid: aid),
+                        videoTitle: controller.title
+                    )
                 }
             case .login:
                 LoginScreen()

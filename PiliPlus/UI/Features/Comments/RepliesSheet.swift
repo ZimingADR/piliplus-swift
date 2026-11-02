@@ -2,7 +2,8 @@ import SwiftUI
 
 /// 楼中楼（子回复）列表与回复输入。
 struct RepliesSheet: View {
-    let aid: Int
+    let oid: Int
+    var type: Int = 1
     let root: VideoComment
 
     @Environment(AppEnvironment.self) private var environment
@@ -105,9 +106,10 @@ struct RepliesSheet: View {
                                 onLike: { liked in
                                     Task {
                                         try? await environment.client.likeComment(
-                                            oid: aid,
+                                            oid: oid,
                                             rpid: reply.id,
-                                            like: liked
+                                            like: liked,
+                                            type: type
                                         )
                                     }
                                 }
@@ -179,9 +181,10 @@ struct RepliesSheet: View {
 
         do {
             let result = try await environment.client.commentReplies(
-                oid: aid,
+                oid: oid,
                 root: root.id,
-                page: page
+                page: page,
+                type: type
             )
             if reset {
                 replies = result.comments
@@ -218,7 +221,8 @@ struct RepliesSheet: View {
         errorMessage = nil
         do {
             try await environment.client.addReply(
-                aid: aid,
+                oid: oid,
+                type: type,
                 message: message,
                 root: root.id,
                 parent: root.id

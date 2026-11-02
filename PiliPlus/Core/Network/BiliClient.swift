@@ -563,9 +563,19 @@ actor BiliClient {
     }
 
     func addReply(aid: Int, message: String, root: Int64? = nil, parent: Int64? = nil) async throws {
+        try await addReply(oid: aid, type: 1, message: message, root: root, parent: parent)
+    }
+
+    func addReply(
+        oid: Int,
+        type: Int,
+        message: String,
+        root: Int64? = nil,
+        parent: Int64? = nil
+    ) async throws {
         var form: [String: String] = [
-            "oid": String(aid),
-            "type": "1",
+            "oid": String(oid),
+            "type": String(type),
             "plat": "1",
             "message": message,
         ]

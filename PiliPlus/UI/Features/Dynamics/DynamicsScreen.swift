@@ -184,6 +184,7 @@ struct DynamicDetailScreen: View {
     @State private var item: DynamicItem?
     @State private var phase: Phase = .idle
     @State private var articleTarget: ArticleTarget?
+    @State private var showsComments = false
 
     private enum Phase: Equatable {
         case idle
@@ -209,6 +210,14 @@ struct DynamicDetailScreen: View {
                             },
                             onOpenDetail: { _ in }
                         )
+
+                        Button {
+                            showsComments = true
+                        } label: {
+                            Label("查看评论", systemImage: "text.bubble")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(GlassButtonStyle(tint: Glass.blue))
                     } else if case .failed(let message) = phase {
                         LoadingStateView(style: .failure(message)) {
                             Task { await load() }
@@ -226,6 +235,11 @@ struct DynamicDetailScreen: View {
         .task { await load() }
         .navigationDestination(item: $articleTarget) { target in
             ArticleScreen(cvid: target.id)
+        }
+        .sheet(isPresented: $showsComments) {
+            if let oid = Int(id) {
+                CommentsSheet(source: .dynamic(id: oid))
+            }
         }
     }
 

@@ -234,7 +234,7 @@ extension BiliClient {
 // MARK: - 评论
 
 extension BiliClient {
-    func comments(aid: Int, offset: String = "") async throws -> CommentPage {
+    func comments(oid: Int, type: Int = 1, offset: String = "") async throws -> CommentPage {
         let pagination = offset.isEmpty
             ? "{\"offset\":\"\"}"
             : "{\"offset\":\"\(offset)\"}"
@@ -243,8 +243,8 @@ extension BiliClient {
             CommentsResponse.Payload.self,
             path: "/x/v2/reply/wbi/main",
             query: [
-                "oid": String(aid),
-                "type": "1",
+                "oid": String(oid),
+                "type": String(type),
                 "mode": "3",
                 "plat": "1",
                 "web_location": "1315871",
@@ -282,14 +282,15 @@ extension BiliClient {
     func commentReplies(
         oid: Int,
         root: Int64,
-        page: Int
+        page: Int,
+        type: Int = 1
     ) async throws -> CommentPage {
         let payload: ReplyRepliesResponse.Payload = try await object(
             ReplyRepliesResponse.Payload.self,
             path: "/x/v2/reply/reply",
             query: [
                 "oid": String(oid),
-                "type": "1",
+                "type": String(type),
                 "root": String(root),
                 "pn": String(max(1, page)),
                 "ps": "20",
@@ -314,7 +315,7 @@ extension BiliClient {
     }
 
     /// 点赞 / 取消点赞评论。
-    func likeComment(oid: Int, rpid: Int64, like: Bool) async throws {
+    func likeComment(oid: Int, rpid: Int64, like: Bool, type: Int = 1) async throws {
         guard let csrf = csrfToken() else {
             throw BiliAPIError(code: -101, message: "请先登录")
         }
@@ -322,7 +323,7 @@ extension BiliClient {
             "/x/v2/reply/action",
             form: [
                 "oid": String(oid),
-                "type": "1",
+                "type": String(type),
                 "rpid": String(rpid),
                 "action": like ? "1" : "0",
                 "csrf": csrf,
@@ -332,5 +333,35 @@ extension BiliClient {
         guard response.code == 0 else {
             throw BiliAPIError(code: response.code, message: response.message ?? "操作失败")
         }
+    }
+
+    /// 动态评论（`/x/v2/reply`，type=17，页码分页）。
+    func dynamicComments(oid: Int, page: Int) async throws -> CommentPage {
+        let payload: ReplyRepliesResponse.Payload = try await object(
+            ReplyRepliesResponse.Payload.self,
+            path: "/x/v2/reply",
+            query: [
+                "type": "17",
+                "oid": String(oid),
+                "pn": String(max(1, page)),
+                "ps": "20",
+                "sort": "2",
+            ],
+            signed: false
+        )
+
+        let upper = payload.upper?.mid
+        let replies = (payload.replies ?? [])
+            .compactMap { $0.videoComment(uploaderMid: upper) }
+        let pageSize = payload.page?.ps?.value ?? 20
+        let total = payload.page?.count?.value ?? replies.count
+        let currentPage = payload.page?.pn?.value ?? page
+
+        return CommentPage(
+            comments: replies,
+            nextOffset: String(currentPage + 1),
+            isEnd: currentPage * pageSize >= total,
+            total: total
+        )
     }
 }

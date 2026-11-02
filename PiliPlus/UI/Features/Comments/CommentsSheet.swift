@@ -1,8 +1,28 @@
 import SwiftUI
 
-/// 视频评论区（主楼 + 分页 + 发表评论）。
+/// 评论区数据来源：视频（type=1）或动态（type=17）。
+enum CommentsSource: Hashable {
+    case video(aid: Int)
+    case dynamic(id: Int)
+
+    var oid: Int {
+        switch self {
+        case .video(let aid): aid
+        case .dynamic(let id): id
+        }
+    }
+
+    var apiType: Int {
+        switch self {
+        case .video: 1
+        case .dynamic: 17
+        }
+    }
+}
+
+/// 评论区（主楼 + 分页 + 发表评论），视频与动态共用。
 struct CommentsSheet: View {
-    let aid: Int
+    let source: CommentsSource
     var videoTitle: String = ""
 
     @Environment(AppEnvironment.self) private var environment
@@ -10,6 +30,7 @@ struct CommentsSheet: View {
 
     @State private var comments: [VideoComment] = []
     @State private var offset = ""
+    @State private var page = 1
     @State private var isEnd = false
     @State private var total = 0
     @State private var phase: Phase = .idle
@@ -51,7 +72,11 @@ struct CommentsSheet: View {
         .task { await load(reset: true) }
         .sheet(isPresented: $showsLogin) { LoginScreen() }
         .sheet(item: $replyTarget) { comment in
-            RepliesSheet(aid: aid, root: comment)
+            RepliesSheet(
+                oid: source.oid,
+                type: source.apiType,
+                root: comment
+            )
         }
     }
 
@@ -81,9 +106,10 @@ struct CommentsSheet: View {
                                 onLike: { liked in
                                     Task {
                                         try? await environment.client.likeComment(
-                                            oid: aid,
+                                            oid: source.oid,
                                             rpid: comment.id,
-                                            like: liked
+                                            like: liked,
+                                            type: source.apiType
                                         )
                                     }
                                 }
@@ -180,23 +206,32 @@ struct CommentsSheet: View {
         if reset {
             phase = .loading
             offset = ""
+            page = 1
         } else {
             guard !isLoadingMore, !isEnd else { return }
             isLoadingMore = true
         }
 
         do {
-            let page = try await environment.client.comments(aid: aid, offset: offset)
-            let next = page
+            let result: CommentPage
+            switch source {
+            case .video(let aid):
+                result = try await environment.client.comments(oid: aid, offset: offset)
+            case .dynamic(let id):
+                let targetPage = reset ? 1 : page + 1
+                result = try await environment.client.dynamicComments(oid: id, page: targetPage)
+                page = targetPage
+            }
+
             if reset {
-                comments = next.comments
+                comments = result.comments
             } else {
                 let existing = Set(comments.map(\.id))
-                comments.append(contentsOf: next.comments.filter { !existing.contains($0.id) })
+                comments.append(contentsOf: result.comments.filter { !existing.contains($0.id) })
             }
-            self.offset = next.nextOffset
-            isEnd = next.isEnd
-            total = next.total
+            offset = result.nextOffset
+            isEnd = result.isEnd
+            total = result.total
             phase = .loaded
         } catch {
             if Cancellation.isCancellation(error) {
@@ -221,7 +256,11 @@ struct CommentsSheet: View {
         isSending = true
         errorMessage = nil
         do {
-            try await environment.client.addReply(aid: aid, message: message)
+            try await environment.client.addReply(
+                oid: source.oid,
+                type: source.apiType,
+                message: message
+            )
             input = ""
             isComposerFocused = false
             await load(reset: true)
