@@ -124,5 +124,6 @@ struct PiliPlusRecentWidget: Widget {
 struct PiliPlusWidgetBundle: WidgetBundle {
     var body: some Widget {
         PiliPlusRecentWidget()
+        PlaybackLiveActivity()
     }
 }

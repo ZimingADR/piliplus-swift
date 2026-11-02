@@ -72,6 +72,9 @@ final class PlaybackController {
     @ObservationIgnored private let account: AccountStore
     @ObservationIgnored private(set) var engine = MPVEngine()
     @ObservationIgnored let pictureInPicture = PictureInPictureManager()
+    @ObservationIgnored private let liveActivities = PlaybackLiveActivityManager()
+    @ObservationIgnored private var lastActivityUpdate = Date.distantPast
+    @ObservationIgnored private var lastActivityPlaying = false
 
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var loadTask: Task<Void, Never>?
@@ -252,8 +255,52 @@ final class PlaybackController {
         }
     }
 
-    private func skipSponsorIfNeeded(at time: Double) {
-        guard settings.sponsorBlockEnabled, !sponsorSegments.isEmpty else { return }
+    private func syncLiveActivity() {
+        guard let detail else { return }
+
+        let state = PlaybackActivityAttributes.ContentState(
+            isPlaying: isPlaying,
+            elapsed: currentTime,
+            duration: duration,
+            title: title,
+            ownerName: ownerName,
+            coverURLString: coverURL?.absoluteString ?? ""
+        )
+
+        if liveActivities.isActive {
+            let shouldUpdate = isPlaying != lastActivityPlaying
+                || Date.now.timeIntervalSince(lastActivityUpdate) > 2
+            guard shouldUpdate else { return }
+            liveActivities.update(state)
+            lastActivityUpdate = .now
+            lastActivityPlaying = isPlaying
+        } else if isPlaying, loadState == .ready {
+            liveActivities.start(
+                bvid: detail.bvid,
+                cid: currentPage?.cid ?? 0,
+                state: state
+            )
+            lastActivityUpdate = .now
+            lastActivityPlaying = isPlaying
+        }
+    }
+
+    private func endLiveActivity() {
+        guard liveActivities.isActive else { return }
+        let state = PlaybackActivityAttributes.ContentState(
+            isPlaying: false,
+            elapsed: currentTime,
+            duration: duration,
+            title: title,
+            ownerName: ownerName,
+            coverURLString: coverURL?.absoluteString ?? ""
+        )
+        liveActivities.end(state)
+        lastActivityPlaying = false
+        lastActivityUpdate = .distantPast
+    }
+
+    private func skipSponsorIfNeeded(at time: Double) {        guard settings.sponsorBlockEnabled, !sponsorSegments.isEmpty else { return }
         for segment in sponsorSegments
         where time >= segment.start && time < segment.end - 0.3 {
             guard !skippedSponsorSegments.contains(segment.id) else { continue }
@@ -436,7 +483,9 @@ final class PlaybackController {
         }
     }
 
-    func stop() {        saveProgress(force: true)
+    func stop() {
+        saveProgress(force: true)
+        endLiveActivity()
         pollTask?.cancel()
         loadTask?.cancel()
         danmakuTask?.cancel()
@@ -704,6 +753,7 @@ final class PlaybackController {
         }
         isPlaying = engine.isFileLoaded && !engine.isPaused
         isBuffering = engine.isBuffering
+        syncLiveActivity()
 
         if engine.hasEnded, isPlaying {
             isPlaying = false
@@ -835,6 +885,7 @@ final class PlaybackController {
     // MARK: - 辅助
 
     private func resetState() {
+        endLiveActivity()
         pollTask?.cancel()
         danmakuTask?.cancel()
         sponsorTask?.cancel()
