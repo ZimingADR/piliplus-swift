@@ -77,6 +77,8 @@ struct RootView: View {
         switch tab {
         case .home:
             HomeScreen()
+        case .dynamics:
+            DynamicsScreen()
         case .discover:
             DiscoverScreen()
         case .mine:

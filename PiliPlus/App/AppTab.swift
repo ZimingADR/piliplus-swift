@@ -2,6 +2,7 @@ import SwiftUI
 
 enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case home
+    case dynamics
     case discover
     case mine
 
@@ -10,6 +11,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
     var title: String {
         switch self {
         case .home: "首页"
+        case .dynamics: "动态"
         case .discover: "发现"
         case .mine: "我的"
         }
@@ -18,6 +20,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
     var icon: String {
         switch self {
         case .home: "house"
+        case .dynamics: "square.stack"
         case .discover: "square.grid.2x2"
         case .mine: "person"
         }
@@ -26,6 +29,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
     var selectedIcon: String {
         switch self {
         case .home: "house.fill"
+        case .dynamics: "square.stack.fill"
         case .discover: "square.grid.2x2.fill"
         case .mine: "person.fill"
         }
