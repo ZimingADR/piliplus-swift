@@ -43,7 +43,8 @@
 | `rank` | `VideoFeedModel(.rank)` | ✅ |
 | `later` / `later_search` | `LaterScreen` + 播放器菜单 | ✅ 列表 + 加入 / 移除 |
 | `member` / `member_home` / `member_video` | `UI/Features/Member/MemberScreen.swift` | ✅ 资料 + 投稿分页 + 排序 |
-| `member_profile` / `member_favorite` / `member_like_arc` 等 | — | ⏳ |
+| `member_favorite` | `MemberFavoritesScreen` | ✅ UP 主公开收藏夹 → 详情 |
+| `member_profile` / `member_like_arc` / `member_series` 等 | — | ⏳ |
 | `member_search` | — | ⏳ |
 | `popular_precious` | `PreciousScreen` + `BiliClient.preciousVideos` | ✅ 入站必刷分页 |
 | `popular_series`（每周必看） | `WeeklyScreen` + `popularSeriesList/Videos` | ✅ 系列切换 + 当期网格 |
