@@ -228,3 +228,57 @@ struct CommentsResponse: Decodable, Sendable {
     let message: String?
     let data: Payload?
 }
+
+// MARK: - 楼中楼
+
+struct ReplyRepliesResponse: Decodable, Sendable {
+    struct Payload: Decodable, Sendable {
+        struct Page: Decodable, Sendable {
+            let pn: FlexInt?
+            let ps: FlexInt?
+            let count: FlexInt?
+        }
+
+        struct Upper: Decodable, Sendable {
+            let mid: Int?
+        }
+
+        let replies: [CommentsResponse.Payload.Reply]?
+        let page: Page?
+        let upper: Upper?
+    }
+
+    let code: Int
+    let message: String?
+    let data: Payload?
+}
+
+extension CommentsResponse.Payload.Reply {
+    /// 把接口 DTO 映射成 UI 模型。
+    func videoComment(uploaderMid: Int?) -> VideoComment? {
+        guard let rpid = rpid?.value else { return nil }
+        let text = (content?.message ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+
+        return VideoComment(
+            id: Int64(rpid),
+            userName: member?.uname ?? "用户",
+            avatarURL: RecommendFeedResponse.Item.httpsURL(member?.avatar),
+            level: member?.levelInfo?.currentLevel?.value ?? 0,
+            message: text,
+            likeCount: like?.value ?? 0,
+            replyCount: rcount?.value ?? 0,
+            createdAt: ctime.map { Date(timeIntervalSince1970: TimeInterval($0.value)) },
+            isUp: uploaderMid != nil && mid?.value == uploaderMid
+        )
+    }
+}
+
+/// 常用表情码（B 站会按 `[code]` 渲染图片）。
+enum EmoteCatalog {
+    static let codes = [
+        "[doge]", "[笑哭]", "[妙啊]", "[脱单doge]", "[点赞]",
+        "[鼓掌]", "[呲牙]", "[星星眼]", "[吃瓜]", "[惊喜]",
+        "[歪嘴]", "[热词系列_好活]", "[笑]", "[思考]", "[委屈]",
+    ]
+}

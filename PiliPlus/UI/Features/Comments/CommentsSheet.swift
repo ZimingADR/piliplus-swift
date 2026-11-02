@@ -18,6 +18,8 @@ struct CommentsSheet: View {
     @State private var isSending = false
     @State private var errorMessage: String?
     @State private var showsLogin = false
+    @State private var replyTarget: VideoComment?
+    @State private var showsEmotes = false
     @FocusState private var isComposerFocused: Bool
 
     private enum Phase: Equatable {
@@ -48,6 +50,9 @@ struct CommentsSheet: View {
         .presentationDragIndicator(.visible)
         .task { await load(reset: true) }
         .sheet(isPresented: $showsLogin) { LoginScreen() }
+        .sheet(item: $replyTarget) { comment in
+            RepliesSheet(aid: aid, root: comment)
+        }
     }
 
     @ViewBuilder
@@ -70,7 +75,19 @@ struct CommentsSheet: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 14) {
                         ForEach(comments) { comment in
-                            CommentRow(comment: comment)
+                            CommentRow(
+                                comment: comment,
+                                onOpenReplies: { replyTarget = comment },
+                                onLike: { liked in
+                                    Task {
+                                        try? await environment.client.likeComment(
+                                            oid: aid,
+                                            rpid: comment.id,
+                                            like: liked
+                                        )
+                                    }
+                                }
+                            )
                             Divider().opacity(0.35)
                         }
                         if !isEnd {
@@ -97,7 +114,39 @@ struct CommentsSheet: View {
                     .foregroundStyle(.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            if showsEmotes {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(EmoteCatalog.codes, id: \.self) { code in
+                            Button {
+                                input += code
+                            } label: {
+                                Text(code)
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 5)
+                                    .background(.ultraThinMaterial, in: .capsule)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, Theme.screenPadding)
+                }
+                .frame(height: 36)
+            }
+
             HStack(spacing: 10) {
+                Button {
+                    showsEmotes.toggle()
+                } label: {
+                    Image(systemName: "face.smiling")
+                        .font(.title3)
+                        .foregroundStyle(Glass.pink)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("表情")
+
                 TextField("发一条友善的评论", text: $input, axis: .vertical)
                     .lineLimit(1 ... 3)
                     .font(.subheadline)
@@ -185,6 +234,10 @@ struct CommentsSheet: View {
 
 struct CommentRow: View {
     let comment: VideoComment
+    var onOpenReplies: (() -> Void)? = nil
+    var onLike: ((Bool) -> Void)? = nil
+
+    @State private var isLiked = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -217,10 +270,27 @@ struct CommentRow: View {
                         Text(Self.relativeTime(createdAt))
                     }
                     if comment.replyCount > 0 {
-                        Label("\(comment.replyCount)", systemImage: "text.bubble")
+                        Button {
+                            onOpenReplies?()
+                        } label: {
+                            Label("\(comment.replyCount)", systemImage: "text.bubble")
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(onOpenReplies == nil)
                     }
                     Spacer(minLength: 0)
-                    Label("\(comment.likeCount)", systemImage: "hand.thumbsup")
+                    Button {
+                        isLiked.toggle()
+                        onLike?(isLiked)
+                    } label: {
+                        Label(
+                            "\(max(0, comment.likeCount + (isLiked ? 1 : 0)))",
+                            systemImage: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(isLiked ? Glass.pink : Color.secondary)
+                    .disabled(onLike == nil)
                 }
                 .font(.caption2)
                 .foregroundStyle(.tertiary)

@@ -256,27 +256,16 @@ extension BiliClient {
         let uploaderMid = payload.upper?.mid
         var comments: [VideoComment] = []
 
-        func map(_ reply: CommentsResponse.Payload.Reply) -> VideoComment? {
-            guard let rpid = reply.rpid?.value else { return nil }
-            let message = reply.content?.message ?? ""
-            guard !message.isEmpty else { return nil }
-            return VideoComment(
-                id: Int64(rpid),
-                userName: reply.member?.uname ?? "用户",
-                avatarURL: RecommendFeedResponse.Item.httpsURL(reply.member?.avatar),
-                level: reply.member?.levelInfo?.currentLevel?.value ?? 0,
-                message: message,
-                likeCount: reply.like?.value ?? 0,
-                replyCount: reply.rcount?.value ?? 0,
-                createdAt: reply.ctime.map { Date(timeIntervalSince1970: TimeInterval($0.value)) },
-                isUp: uploaderMid != nil && reply.mid?.value == uploaderMid
+        if offset.isEmpty {
+            comments.append(
+                contentsOf: (payload.topReplies ?? [])
+                    .compactMap { $0.videoComment(uploaderMid: uploaderMid) }
             )
         }
-
-        if offset.isEmpty {
-            comments.append(contentsOf: (payload.topReplies ?? []).compactMap(map))
-        }
-        comments.append(contentsOf: (payload.replies ?? []).compactMap(map))
+        comments.append(
+            contentsOf: (payload.replies ?? [])
+                .compactMap { $0.videoComment(uploaderMid: uploaderMid) }
+        )
 
         var seen = Set<Int64>()
         comments = comments.filter { seen.insert($0.id).inserted }
@@ -287,5 +276,61 @@ extension BiliClient {
             isEnd: payload.cursor?.isEnd ?? true,
             total: payload.cursor?.allCount?.value ?? comments.count
         )
+    }
+
+    /// 楼中楼（子回复）分页。
+    func commentReplies(
+        oid: Int,
+        root: Int64,
+        page: Int
+    ) async throws -> CommentPage {
+        let payload: ReplyRepliesResponse.Payload = try await object(
+            ReplyRepliesResponse.Payload.self,
+            path: "/x/v2/reply/reply",
+            query: [
+                "oid": String(oid),
+                "type": "1",
+                "root": String(root),
+                "pn": String(max(1, page)),
+                "ps": "20",
+                "web_location": "1315871",
+            ],
+            signed: false
+        )
+
+        let upper = payload.upper?.mid
+        let replies = (payload.replies ?? [])
+            .compactMap { $0.videoComment(uploaderMid: upper) }
+        let pageSize = payload.page?.ps?.value ?? 20
+        let total = payload.page?.count?.value ?? replies.count
+        let currentPage = payload.page?.pn?.value ?? page
+
+        return CommentPage(
+            comments: replies,
+            nextOffset: String(currentPage + 1),
+            isEnd: currentPage * pageSize >= total,
+            total: total
+        )
+    }
+
+    /// 点赞 / 取消点赞评论。
+    func likeComment(oid: Int, rpid: Int64, like: Bool) async throws {
+        guard let csrf = csrfToken() else {
+            throw BiliAPIError(code: -101, message: "请先登录")
+        }
+        let data = try await postForm(
+            "/x/v2/reply/action",
+            form: [
+                "oid": String(oid),
+                "type": "1",
+                "rpid": String(rpid),
+                "action": like ? "1" : "0",
+                "csrf": csrf,
+            ]
+        )
+        let response = try JSONDecoder().decode(ActionResponse.self, from: data)
+        guard response.code == 0 else {
+            throw BiliAPIError(code: response.code, message: response.message ?? "操作失败")
+        }
     }
 }
