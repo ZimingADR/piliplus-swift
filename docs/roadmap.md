@@ -47,7 +47,8 @@
 | `member_favorite` | `MemberFavoritesScreen` | ✅ UP 主公开收藏夹 → 详情 |
 | `member_article` | `MemberArticlesScreen` + WBI/旧接口回退 | ✅ UP 主专栏列表 → 阅读 |
 | `member_series` | `MemberCollectionsScreen` + `seasons_series_list` | ✅ UP 主合集/系列列表 |
-| `member_profile` / `member_like_arc` 等 | — | ⏳ |
+| `member_like_arc` | `MemberLikedScreen` + `/x/v2/space/likearc` | ✅ 最近点赞视频 |
+| `member_profile` 等 | — | ⏳ |
 | `member_search` | — | ⏳ |
 | `popular_precious` | `PreciousScreen` + `BiliClient.preciousVideos` | ✅ 入站必刷分页 |
 | `popular_series`（每周必看） | `WeeklyScreen` + `popularSeriesList/Videos` | ✅ 系列切换 + 当期网格 |
