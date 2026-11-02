@@ -42,6 +42,7 @@ final class SettingsStore {
         static let danmakuOpacity = "settings.danmakuOpacity"
         static let danmakuSpeed = "settings.danmakuSpeed"
         static let danmakuArea = "settings.danmakuArea"
+        static let danmakuBlocked = "settings.danmakuBlocked"
         static let audioNormalization = "settings.audioNormalization"
         static let loudnessTarget = "settings.loudnessTarget"
         static let loudnessStrength = "settings.loudnessStrength"
@@ -106,6 +107,11 @@ final class SettingsStore {
         didSet { defaults.set(danmakuArea, forKey: Key.danmakuArea) }
     }
 
+    /// 本地弹幕屏蔽关键词。
+    var danmakuBlockedKeywords: [String] {
+        didSet { defaults.set(danmakuBlockedKeywords, forKey: Key.danmakuBlocked) }
+    }
+
     // MARK: - 音量平衡
 
     var audioNormalizationMode: String {
@@ -143,6 +149,7 @@ final class SettingsStore {
         danmakuOpacity = defaults.double(forKey: Key.danmakuOpacity, default: 0.9)
         danmakuSpeed = defaults.double(forKey: Key.danmakuSpeed, default: 1.0)
         danmakuArea = defaults.double(forKey: Key.danmakuArea, default: 0.5)
+        danmakuBlockedKeywords = defaults.stringArray(forKey: Key.danmakuBlocked) ?? []
 
         audioNormalizationMode = defaults.string(forKey: Key.audioNormalization) ?? AudioNormalizationMode.bewly.rawValue
         loudnessTargetLUFS = defaults.object(forKey: Key.loudnessTarget) as? Int
@@ -168,6 +175,7 @@ final class SettingsStore {
         danmakuOpacity = 0.9
         danmakuSpeed = 1.0
         danmakuArea = 0.5
+        danmakuBlockedKeywords = []
     }
 
     func resetLoudnessDefaults() {

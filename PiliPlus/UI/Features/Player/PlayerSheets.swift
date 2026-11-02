@@ -54,6 +54,7 @@ struct EpisodeSheet: View {
 struct DanmakuSettingsSheet: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
+    @State private var newBlockedKeyword = ""
 
     var body: some View {
         @Bindable var settings = environment.settings
@@ -95,6 +96,32 @@ struct DanmakuSettingsSheet: View {
                     )
                 }
 
+                Section("屏蔽词") {
+                    ForEach(settings.danmakuBlockedKeywords, id: \.self) { keyword in
+                        HStack {
+                            Text(keyword)
+                            Spacer()
+                            Button {
+                                settings.danmakuBlockedKeywords.removeAll { $0 == keyword }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    HStack {
+                        TextField("添加屏蔽关键词", text: $newBlockedKeyword)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                        Button("添加") {
+                            addBlockedKeyword()
+                        }
+                        .disabled(newBlockedKeyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+
                 Section {
                     Button("恢复默认") {
                         settings.resetDanmakuDefaults()
@@ -111,6 +138,15 @@ struct DanmakuSettingsSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    private func addBlockedKeyword() {
+        let keyword = newBlockedKeyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !keyword.isEmpty else { return }
+        if !environment.settings.danmakuBlockedKeywords.contains(keyword) {
+            environment.settings.danmakuBlockedKeywords.append(keyword)
+        }
+        newBlockedKeyword = ""
     }
 
     private func slider(

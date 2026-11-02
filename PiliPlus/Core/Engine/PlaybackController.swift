@@ -826,7 +826,10 @@ final class PlaybackController {
             do {
                 let items = try await client.danmakuItems(cid: cid, pid: pid, duration: duration)
                 guard !Task.isCancelled else { return }
-                self.danmakuItems = items
+                self.danmakuItems = DanmakuFilter.apply(
+                    items,
+                    blockedKeywords: settings.danmakuBlockedKeywords
+                )
             } catch {
                 // 弹幕失败不影响视频播放。
                 self.danmakuItems = []

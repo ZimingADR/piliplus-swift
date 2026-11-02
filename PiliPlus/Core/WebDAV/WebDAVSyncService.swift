@@ -67,6 +67,7 @@ struct SettingsBackup: Codable, Sendable {
     var danmakuOpacity: Double
     var danmakuSpeed: Double
     var danmakuArea: Double
+    var danmakuBlockedKeywords: [String]?
     var audioNormalizationMode: String
     var loudnessTargetLUFS: Int
     var loudnessStrength: Int
@@ -86,6 +87,7 @@ struct SettingsBackup: Codable, Sendable {
         danmakuOpacity = settings.danmakuOpacity
         danmakuSpeed = settings.danmakuSpeed
         danmakuArea = settings.danmakuArea
+        danmakuBlockedKeywords = settings.danmakuBlockedKeywords
         audioNormalizationMode = settings.audioNormalizationMode
         loudnessTargetLUFS = settings.loudnessTargetLUFS
         loudnessStrength = settings.loudnessStrength
@@ -106,6 +108,7 @@ struct SettingsBackup: Codable, Sendable {
         settings.danmakuOpacity = danmakuOpacity
         settings.danmakuSpeed = danmakuSpeed
         settings.danmakuArea = danmakuArea
+        settings.danmakuBlockedKeywords = danmakuBlockedKeywords ?? []
         settings.audioNormalizationMode = audioNormalizationMode
         settings.loudnessTargetLUFS = loudnessTargetLUFS
         settings.loudnessStrength = loudnessStrength
