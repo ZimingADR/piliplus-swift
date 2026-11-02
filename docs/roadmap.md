@@ -51,7 +51,8 @@
 | 模块 | 实现位置 | 状态 |
 | :--- | :--- | :--- |
 | `dynamics` | `UI/Features/Dynamics/*` | ✅ 关注动态、分页、图文/视频/专栏卡片 |
-| `dynamics_detail` | `DynamicDetailScreen` | ✅ 单条动态展开（评论接入 ⏳） |
+| `dynamics_detail` | `DynamicDetailScreen` | ✅ 单条动态展开 + 评论区入口 |
+| 动态评论 | `CommentsSheet(source: .dynamic)`、`dynamicComments` | ✅ type=17 分页 / 点赞 / 楼中楼 |
 | `article` | `UI/Features/Article/ArticleScreen.swift` | ✅ WKWebView 渲染 + 原生头部 |
 | 动态互动 | 卡片点赞 + `RepostSheet` 转发 | ✅ 点赞 / 转发（发布原动态 ⏳） |
 | `dynamics_tab` / `dynamics_topic` / `dynamics_create` | — | ⏳ |
