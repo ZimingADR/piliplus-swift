@@ -35,6 +35,22 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate --spec project.yml
 
+      - name: Validate SideStore source
+        run: |
+          python3 -m py_compile scripts/update_altstore_source.py
+          python3 - <<'PY'
+          import json
+          with open("altstore.json", encoding="utf-8") as fp:
+              manifest = json.load(fp)
+          app = manifest["apps"][0]
+          version = app["versions"][0]
+          assert app["bundleIdentifier"] == "com.zimingadr.piliplus"
+          for key in ("version", "downloadURL", "size", "minOSVersion"):
+              assert key in version, key
+          assert version["size"] > 0
+          print("altstore.json OK:", version["version"], version["size"])
+          PY
+
       - name: Cache SwiftPM artifacts
         uses: actions/cache@v4
         with:

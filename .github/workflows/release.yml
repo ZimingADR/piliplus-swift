@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build-ipa:
-    name: Build unsigned IPA
+    name: Build unsigned IPA & SideStore source
     runs-on: macos-latest
     timeout-minutes: 60
 
@@ -67,20 +67,62 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             | tail -n 300
 
+      - name: Resolve release version
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG_NAME="$GITHUB_REF_NAME"
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${{ github.event.inputs.tag || '0.1.0' }}"
+            VERSION="${VERSION#v}"
+            TAG_NAME="v${VERSION}"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "TAG_NAME=${TAG_NAME}" >> "$GITHUB_ENV"
+          echo "Release version: ${VERSION} (tag ${TAG_NAME})"
+
       - name: Package IPA
         run: |
           set -euo pipefail
           mkdir -p build/Payload
           cp -R build/PiliPlus.xcarchive/Products/Applications/PiliPlus.app build/Payload/
-          VERSION="${{ github.event.inputs.tag || '0.1.0' }}"
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-          fi
-          VERSION="${VERSION#v}"
-          echo "Packaging PiliPlus ${VERSION}"
           cd build
           zip -qry "PiliPlus-${VERSION}-unsigned.ipa" Payload
-          shasum -a 256 "PiliPlus-${VERSION}-unsigned.ipa" | tee "PiliPlus-${VERSION}-unsigned.ipa.sha256"
+          shasum -a 256 "PiliPlus-${VERSION}-unsigned.ipa" \
+            | tee "PiliPlus-${VERSION}-unsigned.ipa.sha256"
+
+      - name: Update SideStore source
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          python3 scripts/update_altstore_source.py \
+            --source-json altstore.json \
+            --app-bundle build/PiliPlus.xcarchive/Products/Applications/PiliPlus.app \
+            --ipa "build/PiliPlus-${VERSION}-unsigned.ipa" \
+            --download-url "https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/PiliPlus-${VERSION}-unsigned.ipa" \
+            --repo "${{ github.repository }}" \
+            --version "${VERSION}" \
+            --min-os 18.0
+          python3 -m json.tool altstore.json > /dev/null
+          echo "SideStore source updated:"
+          python3 -c "import json;d=json.load(open('altstore.json'));v=d['apps'][0]['versions'][0];print(v['version'], v['size'], v['downloadURL'])"
+
+      - name: Commit SideStore source
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- altstore.json; then
+            echo "altstore.json 未变化，跳过提交"
+            exit 0
+          fi
+          git add altstore.json
+          git commit -m "chore(altstore): 更新 SideStore 订阅源到 ${TAG_NAME}"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -89,6 +131,7 @@ jobs:
           path: |
             build/*.ipa
             build/*.sha256
+            altstore.json
           retention-days: 14
 
       - name: Publish release
@@ -98,7 +141,18 @@ jobs:
           files: |
             build/*.ipa
             build/*.sha256
+            altstore.json
           generate_release_notes: true
           body: |
-            > ⚠️ 本产物为**未签名** IPA，需要自行使用 AltStore / SideStore / TrollStore
-            > 或自己的开发者证书重签后安装。详见 README。
+            > ⚠️ 本产物为**未签名** IPA，需要 SideStore / AltStore / TrollStore
+            > 或自己的开发者证书重签后安装。
+
+            ### SideStore / AltStore 订阅源
+
+            `https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/altstore.json`
+
+            在设备上直接打开即可添加源：
+
+            ```
+            sidestore://source?url=https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/altstore.json
+            ```

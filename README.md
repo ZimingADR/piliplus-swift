@@ -1,6 +1,7 @@
 # PiliPlus · Swift
 
 [![CI](https://github.com/ZimingADR/piliplus-swift/actions/workflows/ci.yml/badge.svg)](https://github.com/ZimingADR/piliplus-swift/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ZimingADR/piliplus-swift)](https://github.com/ZimingADR/piliplus-swift/releases)
 
 PiliPlus 的纯 Swift 原生重写版（iOS / iPadOS），目标是在保留
 [PiliPlus](https://github.com/ZimingADR/PiliNara) Flutter 版功能语义的前提下，
@@ -10,6 +11,26 @@ PiliPlus 的纯 Swift 原生重写版（iOS / iPadOS），目标是在保留
 
 > 无需登录即可刷首页推荐、搜索任意视频、播放 DASH 视频流、使用 BewlyCat
 > 音量平衡、开关弹幕、后台播放与画中画，并自动记住播放进度。
+
+## 安装（SideStore / AltStore）
+
+订阅源（SideStore / AltStore / LiveContainer 通用）：
+
+```text
+https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/altstore.json
+```
+
+在 iOS 设备上用 Safari 打开下面的一键订阅链接，即可把源添加到 SideStore：
+
+```text
+sidestore://source?url=https://raw.githubusercontent.com/ZimingADR/piliplus-swift/main/altstore.json
+```
+
+- Release 产物是**未签名 IPA**，SideStore / AltStore 会在设备上用你的证书重签后安装。
+- 每次推送 `v*` tag，`.github/workflows/release.yml` 会自动归档 IPA、运行
+  `scripts/update_altstore_source.py` 更新 `altstore.json`（版本号、大小、SHA-256、
+  下载地址）并提交回 `main`，订阅源因此始终指向最新版本。
+- 也可以从 [Releases](https://github.com/ZimingADR/piliplus-swift/releases) 手动下载 IPA。
 
 ## Group 1 范围
 
