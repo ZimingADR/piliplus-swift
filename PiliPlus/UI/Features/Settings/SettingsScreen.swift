@@ -97,6 +97,14 @@ struct SettingsScreen: View {
                 }
             }
 
+            Section("诊断") {
+                NavigationLink {
+                    LogsScreen()
+                } label: {
+                    Label("运行日志", systemImage: "doc.text.magnifyingglass")
+                }
+            }
+
             Section("外观") {
                 Picker("主题", selection: $settings.appearance) {
                     ForEach(AppearanceMode.allCases) { mode in

@@ -705,14 +705,28 @@ actor BiliClient {
         request.setValue(cookie, forHTTPHeaderField: "Cookie")
         request.setValue("*/*", forHTTPHeaderField: "Accept")
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            logFailure(path, error.localizedDescription)
+            throw error
+        }
         guard let http = response as? HTTPURLResponse else {
+            logFailure(path, "非 HTTP 响应")
             throw BiliAPIError.invalidResponse
         }
         guard (200 ..< 300).contains(http.statusCode) else {
+            logFailure(path, "HTTP \(http.statusCode)")
             throw BiliAPIError(code: http.statusCode, message: "服务器返回 HTTP \(http.statusCode)")
         }
         return (data, http)
+    }
+
+    private func logFailure(_ path: String, _ message: String) {
+        Task { @MainActor in
+            LogStore.shared.log("\(path) \(message)", level: .error)
+        }
     }
 
     /// Wbi 密钥每天刷新一次；未登录时 `/x/web-interface/nav` 也会返回 `wbi_img`。

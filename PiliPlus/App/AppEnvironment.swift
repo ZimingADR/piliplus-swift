@@ -18,6 +18,7 @@ final class AppEnvironment {
     let account: AccountStore
     let downloads: DownloadManager
     let webdav: WebDAVSyncService
+    let logs: LogStore
     let modelContainer: ModelContainer
 
     /// 由任意列表发起、`RootView` 统一呈现的全屏播放请求。
@@ -41,6 +42,7 @@ final class AppEnvironment {
             history: historyStore,
             settings: settings
         )
+        self.logs = LogStore.shared
     }
 
     static func live() -> AppEnvironment {
