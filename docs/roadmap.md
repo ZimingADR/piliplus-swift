@@ -92,6 +92,7 @@
 | 桌面小组件 | `PiliPlusWidgets/` + `Shared/SharedRecentPlayback` | ✅ 小/中号「继续观看」，App Group 共享最近历史、点击续播 |
 | 灵动岛 Live Activity | `Shared/PlaybackActivityAttributes`、`Core/Activity/*`、`PiliPlusWidgets/PlaybackLiveActivity` | ✅ 锁屏卡片 + 灵动岛紧凑/展开/最小布局，实时进度 |
 | `log_table` | `LogStore` + `LogsScreen` | ✅ 网络失败日志 / 复制 / 清空 |
+| 设置搜索 | `SettingsSearchItem` + `SettingsSearchScreen` | ✅ 标题/关键词过滤，开关可直接修改 |
 | `whisper` / `dlna` / `ai_chat` | — | ⏳ |
 
 ## Liquid Glass 设计系统
