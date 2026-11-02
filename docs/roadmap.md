@@ -10,7 +10,7 @@
 | Group 1 | 核心播放与发现闭环（MVP） | ✅ 已交付（v0.1.1） |
 | Group 2 | 登录、收藏、评论、关注、弹幕屏蔽 | 🚧 主要链路已可用（收藏 / 关注 / 评论 / 互动） |
 | Group 3 | UP 主空间、榜单、稍后再看、热门 | 🚧 热门 / 排行 / 稍后 / UP 主投稿已可用 |
-| Group 4 | 动态、专栏、话题 | ⏳ 待开始 |
+| Group 4 | 动态、专栏、话题 | 🚧 动态信息流 / 详情 / 专栏阅读已可用 |
 | Group 5 | 番剧、直播、音乐 | ⏳ 待开始 |
 | Group 6 | 下载、WebDAV、SponsorBlock、小组件 | ⏳ 待开始 |
 
@@ -45,6 +45,17 @@
 | `member_profile` / `member_favorite` / `member_like_arc` 等 | — | ⏳ |
 | `member_search` | — | ⏳ |
 | `popular_series` / `popular_precious` | — | ⏳ |
+
+## Group 4 明细
+
+| 模块 | 实现位置 | 状态 |
+| :--- | :--- | :--- |
+| `dynamics` | `UI/Features/Dynamics/*` | ✅ 关注动态、分页、图文/视频/专栏卡片 |
+| `dynamics_detail` | `DynamicDetailScreen` | ✅ 单条动态展开（评论接入 ⏳） |
+| `article` | `UI/Features/Article/ArticleScreen.swift` | ✅ WKWebView 渲染 + 原生头部 |
+| `dynamics_tab` / `dynamics_topic` / `dynamics_create` | — | ⏳ |
+| `article_list` | — | ⏳ |
+| `group_panel` / `msg_feed_top` / `fan` | — | ⏳ |
 
 ## Liquid Glass 设计系统
 
