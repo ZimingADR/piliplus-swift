@@ -5,6 +5,8 @@ struct RootView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var selection: AppTab = .home
+    @State private var searchTarget: DeepLinkSearchTarget?
+    @State private var showsLinkedHistory = false
 
     var body: some View {
         @Bindable var environment = environment
@@ -19,9 +21,42 @@ struct RootView: View {
         .fullScreenCover(item: $environment.playerRequest) { request in
             PlayerScreen(request: request)
         }
+        .sheet(item: $searchTarget) { target in
+            SearchPanelSheet(initialKeyword: target.keyword)
+        }
+        .sheet(isPresented: $showsLinkedHistory) {
+            NavigationStack {
+                HistoryScreen()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("完成") { showsLinkedHistory = false }
+                        }
+                    }
+            }
+            .presentationDetents([.large])
+        }
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
         .tint(Glass.pink)
         .task {
             await environment.account.restore()
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard let route = DeepLinkRoute.parse(url) else { return }
+        switch route {
+        case .home:
+            selection = .home
+        case .history:
+            showsLinkedHistory = true
+        case .search(let keyword):
+            selection = .home
+            searchTarget = DeepLinkSearchTarget(keyword: keyword)
+        case .video(let bvid, let cid):
+            selection = .home
+            environment.playerRequest = PlayerRequest(bvid: bvid, aid: nil, cid: cid)
         }
     }
 
@@ -91,4 +126,9 @@ struct RootView: View {
     RootView()
         .environment(AppEnvironment.preview())
         .modelContainer(AppEnvironment.preview().modelContainer)
+}
+
+private struct DeepLinkSearchTarget: Identifiable {
+    let id = UUID()
+    let keyword: String
 }

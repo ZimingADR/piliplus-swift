@@ -3,6 +3,7 @@ import SwiftUI
 /// 搜索页（同时作为播放器内快速搜索浮层 `search_panel`）。
 struct SearchScreen: View {
     var isPanel: Bool = false
+    var initialKeyword: String = ""
 
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
@@ -39,6 +40,13 @@ struct SearchScreen: View {
                 model = SearchModel(client: environment.client)
             }
             await model?.loadTrendingIfNeeded()
+
+            let keyword = initialKeyword.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !keyword.isEmpty, query.isEmpty {
+                query = keyword
+                showsSuggestions = false
+                await model?.submit(keyword)
+            }
         }
         .task(id: query) {
             // 仅在输入框聚焦时展示联想；点击联想后收起键盘不再弹回联想层。
@@ -265,11 +273,13 @@ struct SearchScreen: View {
 
 /// 播放器 / 首页唤起的快速搜索浮层。
 struct SearchPanelSheet: View {
+    var initialKeyword: String = ""
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            SearchScreen(isPanel: true)
+            SearchScreen(isPanel: true, initialKeyword: initialKeyword)
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
