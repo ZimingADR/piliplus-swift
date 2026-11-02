@@ -26,6 +26,17 @@
       },
       "versions": [
         {
+          "version": "0.1.1",
+          "buildVersion": "2",
+          "buildNumber": "2",
+          "date": "2026-11-02T05:06:19Z",
+          "localizedDescription": "PiliPlus iOS 0.1.1 (Build 2)",
+          "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.1.1/PiliPlus-0.1.1-unsigned.ipa",
+          "size": 12587208,
+          "sha256": "3b73387a7c441a8ad677ec27c8a17507a2b860cf2de1a82941a615869def4685",
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "0.1.0",
           "buildVersion": "1",
           "buildNumber": "1",
@@ -37,11 +48,11 @@
           "minOSVersion": "18.0"
         }
       ],
-      "version": "0.1.0",
-      "versionDate": "2026-11-02T04:48:11Z",
-      "versionDescription": "PiliPlus iOS 0.1.0（Group 1 MVP）\n- 纯 Swift 原生重写：SwiftUI + Swift 6 + MPVKit\n- 无需登录：推荐流 / 搜索 / 热搜 / 播放历史\n- DASH 双轨播放、清晰度切换、手势与断点续播\n- BewlyCat 智能音量平衡（volume + dynaudnorm + alimiter）\n- CoreAnimation 弹幕、后台播放与画中画\n- 本 IPA 未签名，SideStore / AltStore 会在设备端重签后安装",
-      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.1.0/PiliPlus-0.1.0-unsigned.ipa",
-      "size": 12587222
+      "version": "0.1.1",
+      "versionDate": "2026-11-02T05:06:19Z",
+      "versionDescription": "PiliPlus iOS 0.1.1 (Build 2)",
+      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.1.1/PiliPlus-0.1.1-unsigned.ipa",
+      "size": 12587208
     }
   ],
   "news": []
