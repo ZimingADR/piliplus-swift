@@ -14,6 +14,7 @@ struct DynamicsScreen: View {
     @State private var repostTarget: DynamicItem?
     @State private var actionError: String?
     @State private var showsCompose = false
+    @State private var filter: DynamicFeedFilter = .all
 
     var body: some View {
         ZStack {
@@ -22,6 +23,7 @@ struct DynamicsScreen: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 14) {
                     header
+                    filterChips
                     content
                 }
                 .padding(.horizontal, Theme.screenPadding)
@@ -90,6 +92,49 @@ struct DynamicsScreen: View {
         }
     }
 
+    private var filterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(DynamicFeedFilter.allCases) { item in
+                    Button {
+                        filter = item
+                    } label: {
+                        Text(item.title)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                filter == item
+                                    ? Glass.pink.opacity(0.26)
+                                    : Color.white.opacity(0.08),
+                                in: .capsule
+                            )
+                            .overlay {
+                                if filter == item {
+                                    Capsule().stroke(Glass.pink.opacity(0.6), lineWidth: 1)
+                                }
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var filteredItems: [DynamicItem] {
+        guard let model else { return [] }
+        switch filter {
+        case .all:
+            return model.items
+        case .video:
+            return model.items.filter { $0.kind == .video }
+        case .article:
+            return model.items.filter { $0.kind == .article }
+        case .text:
+            return model.items.filter { $0.kind == .text || $0.kind == .images }
+        }
+    }
+
     @ViewBuilder
     private var content: some View {
         if let model {
@@ -103,15 +148,15 @@ struct DynamicsScreen: View {
                     Task { await model.loadInitial(force: true) }
                 }
             case .loaded:
-                if model.items.isEmpty {
+                if filteredItems.isEmpty {
                     ContentUnavailableView {
-                        Label("还没有动态", systemImage: "square.stack")
+                        Label(filter.emptyTitle, systemImage: "square.stack")
                     } description: {
-                        Text("去关注一些 UP 主吧。")
+                        Text(filter.emptyDescription)
                     }
                     .padding(.top, 32)
                 } else {
-                    ForEach(model.items) { item in
+                    ForEach(filteredItems) { item in
                         DynamicCard(
                             item: item,
                             onOpenVideo: { card in
@@ -425,5 +470,40 @@ struct ComposeDynamicSheet: View {
             errorMessage = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
         }
         isSending = false
+    }
+}
+
+/// 动态类型筛选。
+enum DynamicFeedFilter: String, CaseIterable, Identifiable {
+    case all
+    case video
+    case article
+    case text
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .all: "全部"
+        case .video: "视频"
+        case .article: "专栏"
+        case .text: "图文"
+        }
+    }
+
+    var emptyTitle: String {
+        switch self {
+        case .all: "还没有动态"
+        case .video: "还没有视频动态"
+        case .article: "还没有专栏动态"
+        case .text: "还没有图文动态"
+        }
+    }
+
+    var emptyDescription: String {
+        switch self {
+        case .all: "去关注一些 UP 主吧。"
+        default: "换个分类看看，或稍后刷新。"
+        }
     }
 }
