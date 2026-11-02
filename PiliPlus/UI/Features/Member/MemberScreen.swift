@@ -21,6 +21,7 @@ struct MemberScreen: View {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if let model {
                         profileHeader(model)
+                        memberEntry
                         orderPicker(model)
                         videos(model)
                     } else {
@@ -52,8 +53,36 @@ struct MemberScreen: View {
         }
     }
 
-    private func profileHeader(_ model: MemberViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+    private var memberEntry: some View {
+        NavigationLink {
+            MemberFavoritesScreen(mid: mid)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "star.square.on.square.fill")
+                    .foregroundStyle(Glass.pink)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("TA 的收藏夹")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text("公开收藏夹")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(12)
+            .liquidGlass(cornerRadius: 16, elevation: 0.6)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func profileHeader(_ model: MemberViewModel) -> some View {        VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
                 AvatarImage(url: model.profile?.faceURL, size: 68)
                 VStack(alignment: .leading, spacing: 6) {
