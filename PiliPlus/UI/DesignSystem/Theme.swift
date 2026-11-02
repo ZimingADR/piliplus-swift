@@ -59,10 +59,16 @@ struct LoadingStateView: View {
     enum Style {
         case loading
         case empty(title: String, message: String, systemImage: String)
-        case failure(message: String, retry: () -> Void)
+        case failure(String)
     }
 
     let style: Style
+    var retry: (() -> Void)?
+
+    init(style: Style, retry: (() -> Void)? = nil) {
+        self.style = style
+        self.retry = retry
+    }
 
     var body: some View {
         switch style {
@@ -80,15 +86,17 @@ struct LoadingStateView: View {
             }
             .padding(.vertical, 32)
 
-        case .failure(let message, let retry):
+        case .failure(let message):
             ContentUnavailableView {
                 Label("加载失败", systemImage: "exclamationmark.triangle")
             } description: {
                 Text(message)
             } actions: {
-                Button("重试", action: retry)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Theme.accent)
+                if let retry {
+                    Button("重试", action: retry)
+                        .buttonStyle(.borderedProminent)
+                        .tint(Theme.accent)
+                }
             }
             .padding(.vertical, 32)
         }

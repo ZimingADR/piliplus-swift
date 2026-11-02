@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 /// 搜索页状态：热搜、输入联想、结果分页与排序。

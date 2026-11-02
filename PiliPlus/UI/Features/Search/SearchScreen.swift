@@ -96,7 +96,7 @@ struct SearchScreen: View {
                     LoadingStateView(style: .loading)
                     Spacer(minLength: 0)
                 case .failed(let message):
-                    LoadingStateView(style: .failure(message: message)) {
+                    LoadingStateView(style: .failure(message)) {
                         submit()
                     }
                     Spacer(minLength: 0)

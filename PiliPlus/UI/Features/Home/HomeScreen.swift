@@ -25,7 +25,7 @@ struct HomeScreen: View {
                     case .idle, .loading where model.videos.isEmpty:
                         LoadingStateView(style: .loading)
                     case .failed(let message) where model.videos.isEmpty:
-                        LoadingStateView(style: .failure(message: message)) {
+                        LoadingStateView(style: .failure(message)) {
                             Task { await model.refresh() }
                         }
                     default:

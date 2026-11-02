@@ -12,6 +12,7 @@ struct PlayerScreen: View {
 
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var controller: PlaybackController?
     @State private var showsControls = true
@@ -79,6 +80,13 @@ struct PlayerScreen: View {
                 controller?.setDanmakuVisible(newValue)
             }
         }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .background,
+                  environment.settings.pictureInPictureEnabled,
+                  controller?.isPlaying == true,
+                  controller?.isPictureInPictureSupported == true else { return }
+            controller?.togglePictureInPicture()
+        }
         .onDisappear {
             hideControlsTask?.cancel()
             hudTask?.cancel()
@@ -109,6 +117,14 @@ struct PlayerScreen: View {
                 )
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
+            }
+
+            // AVPlayerLayer 宿主：交给 AVKit 做系统画中画。
+            if let pipLayer = controller.pictureInPictureLayer {
+                PiPHostView(playerLayer: pipLayer)
+                    .frame(width: 2, height: 2)
+                    .opacity(0.01)
+                    .allowsHitTesting(false)
             }
         }
     }
@@ -393,6 +409,17 @@ struct PlayerScreen: View {
                             .font(.title3)
                     }
                     .accessibilityLabel("选集（\(controller.pages.count) P）")
+                }
+
+                if controller.isPictureInPictureSupported {
+                    Button {
+                        controller.togglePictureInPicture()
+                        scheduleHideControls()
+                    } label: {
+                        Image(systemName: "pip.enter")
+                            .font(.title3)
+                    }
+                    .accessibilityLabel("画中画")
                 }
 
                 Button {

@@ -1,3 +1,4 @@
+import AVKit
 import Foundation
 import Observation
 import QuartzCore
@@ -48,6 +49,7 @@ final class PlaybackController {
     @ObservationIgnored private let history: PlaybackHistoryStore
     @ObservationIgnored private let audioSession: AudioSessionCoordinator
     @ObservationIgnored private(set) var engine = MPVEngine()
+    @ObservationIgnored let pictureInPicture = PictureInPictureManager()
 
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var loadTask: Task<Void, Never>?
@@ -113,6 +115,63 @@ final class PlaybackController {
 
     var timeText: String {
         "\(VideoCard.formatDuration(Int(currentTime))) / \(VideoCard.formatDuration(Int(duration)))"
+    }
+
+    // MARK: - 画中画
+
+    var isPictureInPictureSupported: Bool { pictureInPicture.isSupported }
+    var pictureInPictureLayer: AVPlayerLayer? { pictureInPicture.playerLayer }
+
+    func togglePictureInPicture() {
+        if isPiPActive || pictureInPicture.isActive {
+            finishPictureInPicture()
+        } else {
+            Task { await beginPictureInPicture() }
+        }
+    }
+
+    private func beginPictureInPicture() async {
+        guard pictureInPicture.isSupported,
+              let detail,
+              let page = currentPage else { return }
+
+        let start = currentTime
+        engine.pause()
+        isPlaying = false
+
+        do {
+            let url = try await client.muxedPlayURL(
+                bvid: detail.bvid,
+                aid: detail.aid,
+                cid: page.cid
+            )
+            guard pictureInPicture.prepare(url: url, at: start) != nil else { return }
+
+            // AVPictureInPictureController 需要图层进入视图层级后才可能可用。
+            for _ in 0 ..< 12 {
+                if pictureInPicture.start() {
+                    isPiPActive = true
+                    return
+                }
+                if Task.isCancelled { break }
+                try? await Task.sleep(for: .milliseconds(200))
+            }
+            engine.play()
+            isPlaying = true
+        } catch {
+            engine.play()
+            isPlaying = true
+        }
+    }
+
+    private func finishPictureInPicture() {
+        guard isPiPActive || pictureInPicture.isActive else { return }
+        let resumeAt = pictureInPicture.finish()
+        isPiPActive = false
+        engine.seek(to: resumeAt)
+        engine.play()
+        isPlaying = true
+        updateNowPlaying(force: true)
     }
 
     // MARK: - 生命周期
@@ -310,7 +369,7 @@ final class PlaybackController {
     }
 
     private func preparePlaybackIfNeeded() {
-        guard hasSurface, pendingStream != nil, !didPreparePlayback else { return }
+        guard hasSurface, let stream = pendingStream, !didPreparePlayback else { return }
         didPreparePlayback = true
 
         let filter = AudioNormalization.mpvAudioFilter(
@@ -343,6 +402,15 @@ final class PlaybackController {
 
     private func tick() {
         guard hasSurface else { return }
+
+        // 画中画期间由系统播放器接管，MPV 保持暂停；退出时回写进度。
+        if isPiPActive {
+            if !pictureInPicture.isActive {
+                finishPictureInPicture()
+            }
+            return
+        }
+
         updatePlaybackState()
     }
 
