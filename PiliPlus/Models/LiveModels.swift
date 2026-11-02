@@ -179,6 +179,26 @@ extension LivePlayInfoResponse.Payload {
     }
 }
 
+// MARK: - 直播分区
+
+struct LiveArea: Identifiable, Hashable, Sendable, Decodable {
+    let id: Int
+    let name: String
+    let parentID: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id, name
+        case parentID = "parent_id"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(FlexInt.self, forKey: .id).value ?? 0
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? "分区"
+        parentID = try container.decodeIfPresent(FlexInt.self, forKey: .parentID)?.value ?? 0
+    }
+}
+
 // MARK: - 直播搜索
 
 struct LiveSearchResponse: Decodable, Sendable {

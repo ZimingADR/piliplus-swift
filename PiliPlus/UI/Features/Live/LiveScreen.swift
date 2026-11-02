@@ -27,12 +27,21 @@ struct LiveScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showsSearch = true
-                } label: {
-                    Image(systemName: "magnifyingglass")
+                HStack(spacing: 14) {
+                    NavigationLink {
+                        LiveAreaScreen()
+                    } label: {
+                        Image(systemName: "square.grid.2x2")
+                    }
+                    .accessibilityLabel("直播分区")
+
+                    Button {
+                        showsSearch = true
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                    .accessibilityLabel("搜索直播")
                 }
-                .accessibilityLabel("搜索直播")
             }
         }
         .sheet(isPresented: $showsSearch) {
