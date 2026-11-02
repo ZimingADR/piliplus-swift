@@ -112,8 +112,7 @@ jobs:
             --ipa "build/PiliPlus-${VERSION}-unsigned.ipa" \
             --download-url "https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/PiliPlus-${VERSION}-unsigned.ipa" \
             --repo "${{ github.repository }}" \
-            --version "${VERSION}" \
-            --min-os 18.0
+            --version "${VERSION}"
           python3 -m json.tool altstore.json > /dev/null
           echo "SideStore source updated:"
           python3 -c "import json;d=json.load(open('altstore.json'));v=d['apps'][0]['versions'][0];print(v['version'], v['size'], v['downloadURL'])"
