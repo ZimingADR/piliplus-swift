@@ -103,6 +103,18 @@ struct DiscoverScreen: View {
             .buttonStyle(.plain)
 
             NavigationLink {
+                WeeklyScreen()
+            } label: {
+                DiscoverCard(
+                    title: "每周必看",
+                    subtitle: "每周精选合集",
+                    systemImage: "calendar.badge.clock",
+                    tint: Glass.mint
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 LaterScreen()
             } label: {
                 DiscoverCard(
