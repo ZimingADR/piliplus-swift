@@ -86,7 +86,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
-            | tail -n 300
+            -quiet
 
       - name: Run unit tests
         run: |
