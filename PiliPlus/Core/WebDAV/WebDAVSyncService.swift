@@ -72,6 +72,7 @@ struct SettingsBackup: Codable, Sendable {
     var loudnessStrength: Int
     var appearance: String
 
+    @MainActor
     init(settings: SettingsStore) {
         defaultQuality = settings.defaultQuality
         codecPreference = settings.codecPreference.rawValue
