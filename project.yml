@@ -1,0 +1,95 @@
+name: PiliPlus
+
+options:
+  minimumXcodeGenVersion: "2.42.0"
+  bundleIdPrefix: com.zimingadr
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  defaultConfig: Debug
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+fileGroups:
+  - project.yml
+  - README.md
+  - docs
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    ENABLE_MODULE_VERIFIER: NO
+
+packages:
+  MPVKit:
+    url: https://github.com/mpvkit/MPVKit.git
+    exactVersion: "1.1.0-n9.0.2"
+
+targets:
+  PiliPlus:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: PiliPlus
+        excludes:
+          - "Supporting/Info.plist"
+    dependencies:
+      - package: MPVKit
+        product: MPVKit
+    settings:
+      base:
+        PRODUCT_NAME: PiliPlus
+        PRODUCT_BUNDLE_IDENTIFIER: com.zimingadr.piliplus
+        INFOPLIST_FILE: PiliPlus/Supporting/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/Frameworks"
+        OTHER_LDFLAGS:
+          - "$(inherited)"
+          - "-ObjC"
+
+  PiliPlusTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Tests/PiliPlusTests
+    dependencies:
+      - target: PiliPlus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zimingadr.piliplus.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/PiliPlus.app/PiliPlus"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  PiliPlus:
+    build:
+      targets:
+        PiliPlus: all
+        PiliPlusTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - PiliPlusTests
+    archive:
+      config: Release

@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build & Test (iOS Simulator)
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun simctl list runtimes | tail -n 5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec project.yml
+
+      - name: Cache SwiftPM artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Caches/org.swift.swiftpm/security
+            build/DerivedData/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('project.yml') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: Resolve Swift packages
+        run: |
+          set -o pipefail
+          xcodebuild -project PiliPlus.xcodeproj -scheme PiliPlus \
+            -resolvePackageDependencies -derivedDataPath build/DerivedData | tail -n 80
+
+      - name: Build app (simulator, unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project PiliPlus.xcodeproj \
+            -scheme PiliPlus \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            | tail -n 300
+
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available -j \
+            | /usr/bin/python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(d[i][x]['udid'] for i in d for x in range(len(d[i])) if 'iPhone' in d[i][x]['name']))")
+          echo "Using simulator $UDID"
+          xcodebuild test \
+            -project PiliPlus.xcodeproj \
+            -scheme PiliPlus \
+            -configuration Debug \
+            -destination "id=$UDID" \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            | tail -n 300
