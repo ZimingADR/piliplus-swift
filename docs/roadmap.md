@@ -29,7 +29,7 @@
 | `emote` | `EmoteCatalog` + 评论表情面板 | ✅ 常用表情码插入 |
 | `follow` | `UI/Features/Follow/*`、`MemberScreen` 关注按钮 | ✅ 列表 + 关注 / 取关 |
 | `follow_search` | — | ⏳ |
-| `danmaku_block` | — | ⏳ |
+| `danmaku_block` | `DanmakuFilter` + 弹幕设置屏蔽词 | ✅ 本地关键词过滤（正则/BAS 屏蔽 ⏳） |
 | `login_devices` / `login_log` | — | ⏳ |
 | `webview`（Geetest） | — | ⏳ 仅在触发风控时需要 |
 | 视频互动 | 播放器「更多」菜单 | ✅ 点赞 / 投币 / 收藏 / 稍后再看 / 关注 |
