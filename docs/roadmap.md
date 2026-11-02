@@ -79,7 +79,8 @@
 | `sponsor_block` | `Core/SponsorBlock/SponsorBlockService.swift` + 播放器自动跳过 | ✅ 支持片头/片尾/赞助/求三连等分类 |
 | 仅音频（听视频） | 播放器菜单 + `vid=no` | ✅ 封面占位 + 偏好持久化 |
 | `webdav` | `Core/WebDAV/WebDAVSyncService.swift`、`WebDAVSyncScreen` | ✅ 历史 + 设置备份 / 恢复（Basic Auth） |
-| 灵动岛 / 小组件 / App Intents | — | ⏳ |
+| App Intents / Siri / 深链 | `AppIntents/PiliPlusIntents.swift`、`Core/DeepLink/DeepLinkRoute.swift` | ✅ 打开推荐/历史、搜索视频、`piliplus://` 路由 |
+| 灵动岛 / 桌面小组件 | — | ⏳ 需要 Widget Extension + App Group |
 | `whisper` / `dlna` / `ai_chat` / `log_table` | — | ⏳ |
 
 ## Liquid Glass 设计系统
