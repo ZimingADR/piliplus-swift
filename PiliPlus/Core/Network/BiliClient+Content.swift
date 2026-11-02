@@ -156,7 +156,12 @@ extension BiliClient {
         }
     }
 
-    func favoritePage(mediaID: Int, page: Int, keyword: String = "") async throws -> FavoritePage {
+    func favoritePage(
+        mediaID: Int,
+        page: Int,
+        keyword: String = "",
+        order: String = "mtime"
+    ) async throws -> FavoritePage {
         let payload: FavoriteResourceResponse.Payload = try await object(
             FavoriteResourceResponse.Payload.self,
             path: "/x/v3/fav/resource/list",
@@ -165,7 +170,7 @@ extension BiliClient {
                 "pn": String(max(1, page)),
                 "ps": "20",
                 "platform": "web",
-                "order": "mtime",
+                "order": order,
                 "type": "0",
                 "tid": "0",
                 "keyword": keyword,

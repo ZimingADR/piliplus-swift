@@ -184,6 +184,7 @@ struct FavoriteDetailScreen: View {
     @State private var isLoadingMore = false
     @State private var phase: LoadPhase = .idle
     @State private var keyword = ""
+    @State private var sortOrder: FavoriteSortOrder = .recent
 
     private enum LoadPhase: Equatable {
         case idle
@@ -200,6 +201,23 @@ struct FavoriteDetailScreen: View {
         .navigationTitle(folder.title)
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $keyword, prompt: "搜索收藏内容")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Picker("排序", selection: $sortOrder) {
+                        ForEach(FavoriteSortOrder.allCases) { order in
+                            Text(order.title).tag(order)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "arrow.up.arrow.down")
+                }
+                .accessibilityLabel("排序")
+            }
+        }
+        .onChange(of: sortOrder) { _, _ in
+            Task { await loadInitial() }
+        }
         .onSubmit(of: .search) {
             Task { await loadInitial() }
         }
@@ -262,7 +280,8 @@ struct FavoriteDetailScreen: View {
             let result = try await environment.client.favoritePage(
                 mediaID: folder.id,
                 page: 1,
-                keyword: keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+                keyword: keyword.trimmingCharacters(in: .whitespacesAndNewlines),
+                order: sortOrder.rawValue
             )
             videos = result.videos
             page = 1
@@ -283,7 +302,8 @@ struct FavoriteDetailScreen: View {
             let result = try await environment.client.favoritePage(
                 mediaID: folder.id,
                 page: next,
-                keyword: workspaceKeyword
+                keyword: workspaceKeyword,
+                order: sortOrder.rawValue
             )
             let existing = Set(videos.map(\.id))
             videos.append(contentsOf: result.videos.filter { !existing.contains($0.id) })
@@ -293,5 +313,22 @@ struct FavoriteDetailScreen: View {
             // 静默失败，滚动重试。
         }
         isLoadingMore = false
+    }
+}
+
+/// 收藏夹内容排序。
+enum FavoriteSortOrder: String, CaseIterable, Identifiable, Equatable {
+    case recent = "mtime"
+    case views = "view"
+    case published = "pubtime"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .recent: "最近收藏"
+        case .views: "最多播放"
+        case .published: "最近投稿"
+        }
     }
 }
