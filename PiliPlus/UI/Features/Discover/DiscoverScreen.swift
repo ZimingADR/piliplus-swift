@@ -4,6 +4,7 @@ import SwiftUI
 struct DiscoverScreen: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var showsSearch = false
+    @State private var showsMemberSearch = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -29,6 +30,9 @@ struct DiscoverScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showsSearch) {
             SearchPanelSheet()
+        }
+        .sheet(isPresented: $showsMemberSearch) {
+            MemberSearchSheet()
         }
     }
 
@@ -110,6 +114,18 @@ struct DiscoverScreen: View {
                     subtitle: "每周精选合集",
                     systemImage: "calendar.badge.clock",
                     tint: Glass.mint
+                )
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                showsMemberSearch = true
+            } label: {
+                DiscoverCard(
+                    title: "找 UP 主",
+                    subtitle: "搜索用户主页",
+                    systemImage: "person.crop.circle.badge.magnifyingglass",
+                    tint: Glass.blue
                 )
             }
             .buttonStyle(.plain)
