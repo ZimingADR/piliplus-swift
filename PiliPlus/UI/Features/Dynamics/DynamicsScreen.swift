@@ -424,6 +424,8 @@ struct ComposeDynamicSheet: View {
     @State private var photoItems: [PhotosPickerItem] = []
     @State private var selectedImages: [SelectedDynamicImage] = []
     @State private var uploadProgress: String?
+    @State private var selectedTopic: TopicInfo?
+    @State private var showsTopicPicker = false
 
     private var trimmed: String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -444,6 +446,34 @@ struct ComposeDynamicSheet: View {
                         Text("\(text.count)/2000")
                             .monospacedDigit()
                             .foregroundStyle(text.count > 2000 ? .red : .secondary)
+                    }
+                }
+
+                Section("话题") {
+                    if let selectedTopic {
+                        HStack {
+                            Text("#\(selectedTopic.name)")
+                                .font(.subheadline)
+                            Spacer()
+                            Button {
+                                self.selectedTopic = nil
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } else {
+                        Button {
+                            showsTopicPicker = true
+                        } label: {
+                            Label("选择话题", systemImage: "number")
+                        }
+                        .sheet(isPresented: $showsTopicPicker) {
+                            TopicPickerSheet { topic in
+                                selectedTopic = topic
+                            }
+                        }
                     }
                 }
 
@@ -556,7 +586,12 @@ struct ComposeDynamicSheet: View {
             }
 
             uploadProgress = "发布中…"
-            try await environment.client.publishDynamic(text: trimmed, pictures: pictures)
+            try await environment.client.publishDynamic(
+                text: trimmed,
+                pictures: pictures,
+                topicID: selectedTopic?.id,
+                topicName: selectedTopic?.name
+            )
             onPublished()
             dismiss()
         } catch {

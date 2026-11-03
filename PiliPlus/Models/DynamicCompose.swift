@@ -58,11 +58,30 @@ struct DynamicComposePayload: Encodable, Sendable {
         let contents: [Paragraph]
     }
 
+    struct Topic: Encodable, Sendable {
+        let id: Int
+        let name: String
+        let fromSource: String
+        let fromTopicID: Int
+
+        enum CodingKeys: String, CodingKey {
+            case id, name
+            case fromSource = "from_source"
+            case fromTopicID = "from_topic_id"
+        }
+    }
+
     let content: Content
     let scene: Int
     let pics: [DynamicPicture]?
+    let topic: Topic?
 
-    init(text: String, pictures: [DynamicPicture] = []) {
+    init(
+        text: String,
+        pictures: [DynamicPicture] = [],
+        topicID: Int? = nil,
+        topicName: String? = nil
+    ) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         content = Content(
             contents: trimmed.isEmpty
@@ -71,6 +90,17 @@ struct DynamicComposePayload: Encodable, Sendable {
         )
         pics = pictures.isEmpty ? nil : pictures
         scene = pictures.isEmpty ? 1 : 2
+
+        if let topicID, let topicName, topicID > 0, !topicName.isEmpty {
+            topic = Topic(
+                id: topicID,
+                name: topicName,
+                fromSource: "dyn.web.list",
+                fromTopicID: 0
+            )
+        } else {
+            topic = nil
+        }
     }
 
     var jsonString: String? {

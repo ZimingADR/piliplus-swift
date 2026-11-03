@@ -33,8 +33,7 @@ struct DynamicComposeTests {
     }
 
     @Test("图文动态编码 pics 与 scene=2")
-    func encodesPictures() throws {
-        let picture = DynamicPicture(
+    func encodesPictures() throws {        let picture = DynamicPicture(
             imgSrc: "https://i0.hdslb.com/bfs/new_dyn/a.jpg",
             imgWidth: 1200,
             imgHeight: 800,
@@ -58,5 +57,23 @@ struct DynamicComposeTests {
         let content = try #require(object["content"] as? [String: Any])
         let contents = try #require(content["contents"] as? [[String: Any]])
         #expect(contents.isEmpty)
+    }
+
+    @Test("附带话题编码")
+    func encodesTopic() throws {
+        let json = try #require(
+            DynamicComposePayload(
+                text: "带话题的动态",
+                topicID: 100,
+                topicName: "测试话题"
+            ).jsonString
+        )
+        let object = try #require(
+            JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
+        )
+        let topic = try #require(object["topic"] as? [String: Any])
+        #expect(topic["id"] as? Int == 100)
+        #expect(topic["name"] as? String == "测试话题")
+        #expect(topic["from_source"] as? String == "dyn.web.list")
     }
 }

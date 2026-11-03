@@ -77,6 +77,26 @@ extension BiliClient {
         )
     }
 
+    func publishDynamic(
+        text: String,
+        pictures: [DynamicPicture],
+        topicID: Int?,
+        topicName: String?
+    ) async throws {
+        guard let payload = DynamicComposePayload(
+            text: text,
+            pictures: pictures,
+            topicID: topicID,
+            topicName: topicName
+        ).jsonString else {
+            throw BiliAPIError(code: -400, message: "动态内容编码失败")
+        }
+        try await performFormAction(
+            "/x/dynamic/feed/create/dyn",
+            form: ["dyn_req": payload]
+        )
+    }
+
     func createVote(_ payload: VoteCreatePayload) async throws -> Int {
         guard let json = payload.jsonString else {
             throw BiliAPIError(code: -400, message: "投票内容编码失败")
