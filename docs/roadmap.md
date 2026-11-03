@@ -99,7 +99,8 @@
 | 灵动岛 Live Activity | `Shared/PlaybackActivityAttributes`、`Core/Activity/*`、`PiliPlusWidgets/PlaybackLiveActivity` | ✅ 锁屏卡片 + 灵动岛紧凑/展开/最小布局，实时进度 |
 | `log_table` | `LogStore` + `LogsScreen` | ✅ 网络失败日志 / 复制 / 清空 |
 | 设置搜索 | `SettingsSearchItem` + `SettingsSearchScreen` | ✅ 标题/关键词过滤，开关可直接修改 |
-| `whisper` / `dlna` / `ai_chat` | — | ⏳ |
+| `ai_chat`（AI 视频总结） | `AIConclusionSheet` + `/x/web-interface/view/conclusion/get` | ✅ 摘要 + 分段提纲 / 点击跳转 |
+| `whisper` / `dlna` | — | ⏳ |
 
 ## Liquid Glass 设计系统
 
