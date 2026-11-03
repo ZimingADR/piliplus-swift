@@ -85,7 +85,8 @@
 | `live_follow` | `LiveFollowScreen` + `/xlive/web-ucenter/user/following` | ✅ 关注主播开播列表 |
 | `music`（音乐模式） | `MusicModeSheet` + 播放器菜单 | ✅ 大封面 / 进度 / ±15s / 播放控制 |
 | `audio`（独立音频专区） | — | ⏳ |
-| `subscription` / `save_panel` | — | ⏳ |
+| `save_panel` | `SavePanelSheet` + `favoriteVideo` | ✅ 播放器内分文件夹收藏 |
+| `subscription` | — | ⏳ |
 
 ## Group 6 明细
 
