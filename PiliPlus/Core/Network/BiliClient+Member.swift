@@ -168,4 +168,34 @@ extension BiliClient {
         let total = payload.totalSize?.value ?? cards.count
         return (cards, page * 20 < total)
     }
+
+    /// UP 主追番（type=1 番剧）。
+    func memberBangumi(mid: Int, page: Int) async throws -> ([MemberBangumi], Bool) {
+        let payload: SpaceBangumiResponse.Payload = try await object(
+            SpaceBangumiResponse.Payload.self,
+            path: "/x/space/bangumi/follow/list",
+            query: [
+                "type": "1",
+                "follow_status": "0",
+                "vmid": String(mid),
+                "pn": String(max(1, page)),
+                "ps": "15",
+            ],
+            signed: false
+        )
+
+        let items: [MemberBangumi] = (payload.list ?? []).compactMap { item in
+            guard let seasonID = item.seasonID?.value, seasonID > 0 else { return nil }
+            return MemberBangumi(
+                seasonID: seasonID,
+                title: (item.title ?? "番剧").removingHTMLTags,
+                coverURL: RecommendFeedResponse.Item.httpsURL(item.cover),
+                newEp: item.newEp?.indexShow ?? "",
+                badge: item.badge
+            )
+        }
+
+        let total = payload.total?.value ?? items.count
+        return (items, page * 15 < total)
+    }
 }

@@ -120,6 +120,18 @@ struct MemberScreen: View {
                 )
             }
             .buttonStyle(.plain)
+
+            NavigationLink {
+                MemberBangumiScreen(mid: mid)
+            } label: {
+                entryCard(
+                    title: "追番",
+                    subtitle: "公开追番",
+                    systemImage: "tv.fill",
+                    tint: Glass.violet
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
