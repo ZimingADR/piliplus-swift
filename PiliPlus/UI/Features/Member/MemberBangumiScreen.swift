@@ -3,6 +3,7 @@ import SwiftUI
 /// UP 主追番列表。
 struct MemberBangumiScreen: View {
     let mid: Int
+    var title: String = "TA 的追番"
 
     @Environment(AppEnvironment.self) private var environment
 
@@ -28,7 +29,7 @@ struct MemberBangumiScreen: View {
             LiquidBackground()
             content
         }
-        .navigationTitle("TA 的追番")
+        .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .task { await load(reset: true) }
     }

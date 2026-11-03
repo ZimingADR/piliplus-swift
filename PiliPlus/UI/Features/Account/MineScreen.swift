@@ -173,6 +173,12 @@ struct MineScreen: View {
                 row(title: "私信", subtitle: "会话与消息", systemImage: "bubble.left.and.bubble.right", tint: Glass.violet)
             }
             .buttonStyle(.plain)
+            Divider().padding(.leading, 56)
+
+            NavigationLink { MyBangumiScreen() } label: {
+                row(title: "追番", subtitle: "我的追番与追剧", systemImage: "tv", tint: Glass.pink)
+            }
+            .buttonStyle(.plain)
         }
         .liquidGlass(cornerRadius: 22)
     }
