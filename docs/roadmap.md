@@ -67,7 +67,7 @@
 | `dynamics_create` | `ComposeDynamicSheet` + BFS 图片 + `VoteComposeSheet` | ✅ 纯文字 / 图文 / 投票 |
 | `dynamics_tab` | `DynamicFeedFilter` 分类胶囊 | ✅ 全部/视频/专栏/图文 |
 | `dynamics_topic` | `TopicScreen` / `TopicSearchSheet` + topic 接口 | ✅ 话题搜索 + 详情动态流 |
-| `article_list` | — | ⏳ |
+| `article_list` | `ArticleCollectionScreen` + `/x/article/list/web/articles` | ✅ 专栏所属合集 |
 | `group_panel` / `msg_feed_top` / `fan` | — | ⏳ |
 
 ## Group 5 明细
