@@ -29,6 +29,13 @@ struct LiveScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 14) {
                     NavigationLink {
+                        LiveFollowScreen()
+                    } label: {
+                        Image(systemName: "heart")
+                    }
+                    .accessibilityLabel("关注的开播")
+
+                    NavigationLink {
                         LiveAreaScreen()
                     } label: {
                         Image(systemName: "square.grid.2x2")

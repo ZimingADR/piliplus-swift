@@ -179,6 +179,46 @@ extension LivePlayInfoResponse.Payload {
     }
 }
 
+// MARK: - 直播关注
+
+struct LiveFollowResponse: Decodable, Sendable {
+    struct Payload: Decodable, Sendable {
+        struct Item: Decodable, Sendable {
+            let roomID: FlexInt?
+            let liveStatus: FlexInt?
+            let uname: String?
+            let title: String?
+            let areaName: String?
+            let textSmall: String?
+            let roomCover: String?
+
+            enum CodingKeys: String, CodingKey {
+                case uname, title
+                case roomID = "roomid"
+                case liveStatus = "live_status"
+                case areaName = "area_name"
+                case textSmall = "text_small"
+                case roomCover = "room_cover"
+            }
+        }
+
+        let list: [Item]?
+        let totalPage: FlexInt?
+        let count: FlexInt?
+        let liveCount: FlexInt?
+
+        enum CodingKeys: String, CodingKey {
+            case list, count
+            case totalPage = "totalPage"
+            case liveCount = "live_count"
+        }
+    }
+
+    let code: Int
+    let message: String?
+    let data: Payload?
+}
+
 // MARK: - 直播分区
 
 struct LiveArea: Identifiable, Hashable, Sendable, Decodable {

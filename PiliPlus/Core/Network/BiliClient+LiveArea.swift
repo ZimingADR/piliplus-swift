@@ -30,4 +30,39 @@ extension BiliClient {
         )
         return payload.rooms
     }
+
+    /// 关注的主播直播（仅返回正在直播的房间）。
+    func followedLiveRooms(page: Int) async throws -> ([LiveRoom], Bool) {
+        let payload: LiveFollowResponse.Payload = try await object(
+            LiveFollowResponse.Payload.self,
+            path: "/xlive/web-ucenter/user/following",
+            query: [
+                "page": String(max(1, page)),
+                "page_size": "9",
+                "ignoreRecord": "1",
+                "hit_ab": "true",
+            ],
+            host: .live,
+            signed: false
+        )
+
+        let rooms: [LiveRoom] = (payload.list ?? []).compactMap { item in
+            guard item.liveStatus?.value == 1,
+                  let roomID = item.roomID?.value,
+                  roomID > 0 else { return nil }
+
+            return LiveRoom(
+                id: roomID,
+                title: item.title ?? "直播间",
+                uname: item.uname ?? "主播",
+                coverURL: RecommendFeedResponse.Item.httpsURL(item.roomCover),
+                faceURL: nil,
+                areaName: item.areaName ?? "直播",
+                watchedText: item.textSmall ?? ""
+            )
+        }
+
+        let totalPage = payload.totalPage?.value ?? 0
+        return (rooms, page < totalPage)
+    }
 }
