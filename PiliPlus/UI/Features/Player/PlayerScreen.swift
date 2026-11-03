@@ -47,6 +47,7 @@ struct PlayerScreen: View {
         case comments
         case login
         case ai
+        case dlna
 
         var id: String { rawValue }
     }
@@ -200,6 +201,12 @@ struct PlayerScreen: View {
                 }
             } label: {
                 Label("AI 总结", systemImage: "sparkles")
+            }
+
+            Button {
+                activeSheet = .dlna
+            } label: {
+                Label("投屏到设备", systemImage: "airplayvideo")
             }
 
             Button {
@@ -496,6 +503,8 @@ struct PlayerScreen: View {
                         controller.seek(to: seconds)
                     }
                 }
+            case .dlna:
+                DLNAScreen()
             }
         }
     }
