@@ -49,6 +49,7 @@ struct PlayerScreen: View {
         case ai
         case dlna
         case music
+        case savePanel
 
         var id: String { rawValue }
     }
@@ -163,6 +164,16 @@ struct PlayerScreen: View {
                     controller.isFavorited ? "取消收藏" : "收藏",
                     systemImage: controller.isFavorited ? "star.fill" : "star"
                 )
+            }
+
+            Button {
+                if controller.detail?.aid != nil {
+                    activeSheet = .savePanel
+                } else {
+                    showToast("缺少视频信息")
+                }
+            } label: {
+                Label("收藏到…", systemImage: "folder.badge.plus")
             }
 
             if controller.ownerMid != nil {
@@ -516,6 +527,10 @@ struct PlayerScreen: View {
                 }
             case .music:
                 MusicModeSheet(controller: controller)
+            case .savePanel:
+                if let aid = controller.detail?.aid {
+                    SavePanelSheet(aid: aid)
+                }
             }
         }
     }
