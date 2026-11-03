@@ -5,6 +5,7 @@ struct DiscoverScreen: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var showsSearch = false
     @State private var showsMemberSearch = false
+    @State private var showsTopics = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -33,6 +34,9 @@ struct DiscoverScreen: View {
         }
         .sheet(isPresented: $showsMemberSearch) {
             MemberSearchSheet()
+        }
+        .sheet(isPresented: $showsTopics) {
+            TopicSearchSheet()
         }
     }
 
@@ -126,6 +130,18 @@ struct DiscoverScreen: View {
                     subtitle: "搜索用户主页",
                     systemImage: "person.crop.circle.badge.magnifyingglass",
                     tint: Glass.blue
+                )
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                showsTopics = true
+            } label: {
+                DiscoverCard(
+                    title: "话题",
+                    subtitle: "社区话题与讨论",
+                    systemImage: "number",
+                    tint: Glass.mint
                 )
             }
             .buttonStyle(.plain)
