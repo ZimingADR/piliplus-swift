@@ -730,6 +730,72 @@ actor BiliClient {
         }
     }
 
+    /// multipart 上传（动态图片等），返回业务 data。
+    func uploadMultipart<T: Decodable & Sendable>(
+        _ type: T.Type,
+        path: String,
+        fields: [String: String],
+        fileField: String,
+        fileName: String,
+        mimeType: String,
+        fileData: Data
+    ) async throws -> T {
+        guard let csrf = csrfToken() else {
+            throw BiliAPIError(code: -101, message: "请先登录")
+        }
+
+        var allFields = fields
+        allFields["csrf"] = csrf
+
+        let boundary = "PiliPlus-\(UUID().uuidString)"
+        var body = Data()
+
+        func append(_ string: String) {
+            body.append(Data(string.utf8))
+        }
+
+        for (key, value) in allFields {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            append("\(value)\r\n")
+        }
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"\(fileField)\"; filename=\"\(fileName)\"\r\n")
+        append("Content-Type: \(mimeType)\r\n\r\n")
+        body.append(fileData)
+        append("\r\n--\(boundary)--\r\n")
+
+        guard let url = URL(string: Host.api.rawValue + path) else {
+            throw BiliAPIError(code: -5, message: "无法构建请求地址")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 60
+        request.setValue(
+            "multipart/form-data; boundary=\(boundary)",
+            forHTTPHeaderField: "Content-Type"
+        )
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("https://www.bilibili.com/", forHTTPHeaderField: "Referer")
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
+
+        let (data, response) = try await session.upload(for: request, from: body)
+        guard let http = response as? HTTPURLResponse,
+              (200 ..< 300).contains(http.statusCode) else {
+            throw BiliAPIError(code: -8, message: "上传失败")
+        }
+
+        let envelope = try decoder.decode(Envelope<T>.self, from: data)
+        guard envelope.code == 0 else {
+            throw BiliAPIError(code: envelope.code, message: envelope.message ?? "上传失败")
+        }
+        guard let payload = envelope.data else {
+            throw BiliAPIError.emptyData
+        }
+        return payload
+    }
+
     /// Wbi 密钥每天刷新一次；未登录时 `/x/web-interface/nav` 也会返回 `wbi_img`。
     private func mixinKeyValue() async throws -> String {
         if let mixinKey,

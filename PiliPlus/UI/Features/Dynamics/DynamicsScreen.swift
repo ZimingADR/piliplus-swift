@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import UIKit
 
 struct ArticleTarget: Identifiable, Hashable {
     let id: Int
@@ -395,6 +397,9 @@ struct ComposeDynamicSheet: View {
     @State private var isSending = false
     @State private var errorMessage: String?
     @State private var showsLogin = false
+    @State private var photoItems: [PhotosPickerItem] = []
+    @State private var selectedImages: [SelectedDynamicImage] = []
+    @State private var uploadProgress: String?
 
     private var trimmed: String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -419,6 +424,55 @@ struct ComposeDynamicSheet: View {
                 }
 
                 Section {
+                    if !selectedImages.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(selectedImages) { item in
+                                    ZStack(alignment: .topTrailing) {
+                                        Image(uiImage: item.image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 88, height: 88)
+                                            .clipShape(.rect(cornerRadius: 10, style: .continuous))
+
+                                        Button {
+                                            selectedImages.removeAll { $0.id == item.id }
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.title3)
+                                                .symbolRenderingMode(.palette)
+                                                .foregroundStyle(.white, .black.opacity(0.45))
+                                        }
+                                        .buttonStyle(.plain)
+                                        .offset(x: 4, y: -4)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+
+                    PhotosPicker(
+                        selection: $photoItems,
+                        maxSelectionCount: max(1, 9 - selectedImages.count),
+                        matching: .images
+                    ) {
+                        Label("添加图片（\(selectedImages.count)/9）", systemImage: "photo.badge.plus")
+                    }
+                    .onChange(of: photoItems) { _, items in
+                        Task { await loadPhotos(items) }
+                    }
+
+                    if let uploadProgress {
+                        Text(uploadProgress)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("图片")
+                }
+
+                Section {
                     Button {
                         Task { await publish() }
                     } label: {
@@ -430,7 +484,11 @@ struct ComposeDynamicSheet: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    .disabled(isSending || trimmed.isEmpty || text.count > 2000)
+                    .disabled(
+                        isSending
+                            || (trimmed.isEmpty && selectedImages.isEmpty)
+                            || text.count > 2000
+                    )
 
                     if let errorMessage {
                         Text(errorMessage)
@@ -454,7 +512,7 @@ struct ComposeDynamicSheet: View {
     }
 
     private func publish() async {
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty || !selectedImages.isEmpty else { return }
         guard environment.account.isLoggedIn else {
             showsLogin = true
             return
@@ -462,15 +520,44 @@ struct ComposeDynamicSheet: View {
 
         isSending = true
         errorMessage = nil
+        uploadProgress = nil
         do {
-            try await environment.client.publishDynamic(text: trimmed)
+            var pictures: [DynamicPicture] = []
+            if !selectedImages.isEmpty {
+                for (index, item) in selectedImages.enumerated() {
+                    uploadProgress = "上传图片 \(index + 1)/\(selectedImages.count)"
+                    let picture = try await environment.client.uploadDynamicImage(item.data)
+                    pictures.append(picture)
+                }
+            }
+
+            uploadProgress = "发布中…"
+            try await environment.client.publishDynamic(text: trimmed, pictures: pictures)
             onPublished()
             dismiss()
         } catch {
             errorMessage = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
         }
+        uploadProgress = nil
         isSending = false
     }
+
+    private func loadPhotos(_ items: [PhotosPickerItem]) async {
+        for item in items {
+            guard selectedImages.count < 9 else { break }
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else { continue }
+            let compressed = image.jpegData(compressionQuality: 0.82) ?? data
+            selectedImages.append(SelectedDynamicImage(data: compressed, image: image))
+        }
+        photoItems = []
+    }
+}
+
+struct SelectedDynamicImage: Identifiable {
+    let id = UUID()
+    let data: Data
+    let image: UIImage
 }
 
 /// 动态类型筛选。

@@ -31,4 +31,32 @@ struct DynamicComposeTests {
         )
         #expect(object["scene"] as? Int == 1)
     }
+
+    @Test("图文动态编码 pics 与 scene=2")
+    func encodesPictures() throws {
+        let picture = DynamicPicture(
+            imgSrc: "https://i0.hdslb.com/bfs/new_dyn/a.jpg",
+            imgWidth: 1200,
+            imgHeight: 800,
+            imgSize: 120_000
+        )
+        let json = try #require(
+            DynamicComposePayload(text: "", pictures: [picture]).jsonString
+        )
+        let object = try #require(
+            JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
+        )
+
+        #expect(object["scene"] as? Int == 2)
+
+        let pics = try #require(object["pics"] as? [[String: Any]])
+        #expect(pics.count == 1)
+        #expect(pics[0]["img_src"] as? String == picture.imgSrc)
+        #expect(pics[0]["img_width"] as? Int == 1200)
+        #expect(pics[0]["img_height"] as? Int == 800)
+
+        let content = try #require(object["content"] as? [String: Any])
+        let contents = try #require(content["contents"] as? [[String: Any]])
+        #expect(contents.isEmpty)
+    }
 }

@@ -43,6 +43,40 @@ extension BiliClient {
         )
     }
 
+    func uploadDynamicImage(
+        _ data: Data,
+        fileName: String = "dynamic.jpg",
+        mimeType: String = "image/jpeg"
+    ) async throws -> DynamicPicture {
+        let payload: DynamicImageUpload = try await uploadMultipart(
+            DynamicImageUpload.self,
+            path: "/x/dynamic/feed/draw/upload_bfs",
+            fields: [
+                "category": "daily",
+                "biz": "new_dyn",
+            ],
+            fileField: "file_up",
+            fileName: fileName,
+            mimeType: mimeType,
+            fileData: data
+        )
+
+        guard let picture = payload.picture else {
+            throw BiliAPIError(code: -400, message: "图片上传失败")
+        }
+        return picture
+    }
+
+    func publishDynamic(text: String, pictures: [DynamicPicture]) async throws {
+        guard let payload = DynamicComposePayload(text: text, pictures: pictures).jsonString else {
+            throw BiliAPIError(code: -400, message: "动态内容编码失败")
+        }
+        try await performFormAction(
+            "/x/dynamic/feed/create/dyn",
+            form: ["dyn_req": payload]
+        )
+    }
+
     private func performFormAction(
         _ path: String,
         form: [String: String]
