@@ -101,7 +101,7 @@
 | 设置搜索 | `SettingsSearchItem` + `SettingsSearchScreen` | ✅ 标题/关键词过滤，开关可直接修改 |
 | `ai_chat`（AI 视频总结） | `AIConclusionSheet` + `/x/web-interface/view/conclusion/get` | ✅ 摘要 + 分段提纲 / 点击跳转 |
 | `whisper` | `IMSessionListScreen` / `IMChatScreen` + `api.vc` 会话接口 | ✅ 会话列表 + 消息 + 发送文本 |
-| `dlna` | `DLNADiscovery` + `DLNAScreen` | ✅ 设备发现（SSDP/XML）；投屏代理 ⏳ |
+| `dlna` | `DLNADiscovery` + `DLNACastService` + `DLNAScreen` | ✅ 发现 + SOAP SetAVTransportURI/Play（内置代理 ⏳） |
 
 ## Liquid Glass 设计系统
 
