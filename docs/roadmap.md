@@ -49,6 +49,7 @@
 | `member_series` | `MemberCollectionsScreen` + `seasons_series_list` | ✅ UP 主合集/系列列表 |
 | `member_like_arc` | `MemberLikedScreen` + `/x/v2/space/likearc` | ✅ 最近点赞视频 |
 | `member_audio` | `MemberAudioScreen` + `/audio/music-service/web/song/upper` | ✅ UP 主音频列表 |
+| `member_bangumi` | `MemberBangumiScreen` + `/x/space/bangumi/follow/list` | ✅ UP 主追番列表 |
 | `member_profile` 等 | — | ⏳ |
 | `member_search` | `MemberSearchSheet` + WBI search_type=bili_user | ✅ 昵称搜索 → UP 主主页 |
 | `popular_precious` | `PreciousScreen` + `BiliClient.preciousVideos` | ✅ 入站必刷分页 |
