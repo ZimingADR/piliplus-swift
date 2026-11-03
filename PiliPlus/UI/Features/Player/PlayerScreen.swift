@@ -46,6 +46,7 @@ struct PlayerScreen: View {
         case member
         case comments
         case login
+        case ai
 
         var id: String { rawValue }
     }
@@ -188,6 +189,17 @@ struct PlayerScreen: View {
                 downloadCurrent()
             } label: {
                 Label("离线下载", systemImage: "arrow.down.circle")
+            }
+
+            Button {
+                if controller.detail?.bvid.isEmpty == false,
+                   controller.currentPage?.cid != nil {
+                    activeSheet = .ai
+                } else {
+                    showToast("当前视频暂不支持 AI 总结")
+                }
+            } label: {
+                Label("AI 总结", systemImage: "sparkles")
             }
 
             Button {
@@ -472,6 +484,18 @@ struct PlayerScreen: View {
                 }
             case .login:
                 LoginScreen()
+            case .ai:
+                if let bvid = controller.detail?.bvid,
+                   !bvid.isEmpty,
+                   let cid = controller.currentPage?.cid {
+                    AIConclusionSheet(
+                        bvid: bvid,
+                        cid: cid,
+                        upMid: controller.ownerMid
+                    ) { seconds in
+                        controller.seek(to: seconds)
+                    }
+                }
             }
         }
     }
