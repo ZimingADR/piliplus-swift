@@ -100,7 +100,8 @@
 | `log_table` | `LogStore` + `LogsScreen` | ✅ 网络失败日志 / 复制 / 清空 |
 | 设置搜索 | `SettingsSearchItem` + `SettingsSearchScreen` | ✅ 标题/关键词过滤，开关可直接修改 |
 | `ai_chat`（AI 视频总结） | `AIConclusionSheet` + `/x/web-interface/view/conclusion/get` | ✅ 摘要 + 分段提纲 / 点击跳转 |
-| `whisper` / `dlna` | — | ⏳ |
+| `whisper` | `IMSessionListScreen` / `IMChatScreen` + `api.vc` 会话接口 | ✅ 会话列表 + 消息 + 发送文本 |
+| `dlna` | — | ⏳ |
 
 ## Liquid Glass 设计系统
 
