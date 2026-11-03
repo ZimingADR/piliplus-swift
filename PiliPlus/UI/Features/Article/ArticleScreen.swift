@@ -23,6 +23,16 @@ struct ArticleScreen: View {
         }
         .navigationTitle(detail?.title ?? "专栏")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    ArticleCollectionScreen(cvid: cvid)
+                } label: {
+                    Image(systemName: "rectangle.stack")
+                }
+                .accessibilityLabel("专栏合集")
+            }
+        }
         .task { await load() }
     }
 
