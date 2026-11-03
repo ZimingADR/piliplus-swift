@@ -124,15 +124,22 @@ PiliPlus/
 
 以下功能尚未实现，避免误解为「全部完成」：
 
-- **独立音频专区**（音乐模式已支持）
+- **登录短信/密码**：B 站 Web 端限制，扫码登录已覆盖主要场景
+- **Geetest 风控 WebView**：仅在触发风控时出现
+- **成员资料编辑 / 粉丝中心等 fan 模块**
+- **追番订阅 / 播放器内分文件夹收藏面板**
+- **独立音频专区**：B 站 Web 音频首页接口探测为 404；音乐模式与 UP 主音频已支持
+- **弹幕正则 / BAS 屏蔽**：本地关键词屏蔽已支持
 
-已完成范围见 [迁移路线图](docs/roadmap.md)。
+已完成范围见 [迁移路线图](docs/roadmap.md)，接口验证记录见
+[接口探测记录](docs/validation.md)。
 
 ## 文档
 
 - [架构设计](docs/architecture.md)
 - [Group 1 验收清单](docs/group1-acceptance.md)
 - [迁移说明（Flutter → Swift 对照）](docs/migration-notes.md)
+- [接口探测记录](docs/validation.md)
 
 ## 声明
 
