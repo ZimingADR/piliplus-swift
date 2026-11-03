@@ -41,7 +41,7 @@
 | 模块 | 实现位置 | 状态 |
 | :--- | :--- | :--- |
 | `hot` | `VideoFeedModel(.hot)` + `VideoFeedScreen` | ✅ |
-| `rank` | `VideoFeedModel(.rank)` | ✅ |
+| `rank` | `VideoFeedModel(.rank)` + `RankRegion`/`RankPeriod` | ✅ 分区 + 日/周/月周期 |
 | `later` / `later_search` | `LaterScreen` + 播放器菜单 | ✅ 列表 + 加入 / 移除 |
 | `member` / `member_home` / `member_video` | `UI/Features/Member/MemberScreen.swift` | ✅ 资料 + 投稿分页 + 排序 |
 | `member_favorite` | `MemberFavoritesScreen` | ✅ UP 主公开收藏夹 → 详情 |
