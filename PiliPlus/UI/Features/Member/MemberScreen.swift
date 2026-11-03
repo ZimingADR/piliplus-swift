@@ -108,6 +108,18 @@ struct MemberScreen: View {
                 )
             }
             .buttonStyle(.plain)
+
+            NavigationLink {
+                MemberAudioScreen(mid: mid)
+            } label: {
+                entryCard(
+                    title: "音频",
+                    subtitle: "投稿音频",
+                    systemImage: "music.note",
+                    tint: Glass.blue
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 

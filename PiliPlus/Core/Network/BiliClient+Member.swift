@@ -132,4 +132,40 @@ extension BiliClient {
         let total = payload.count?.value ?? cards.count
         return (cards, page * 20 < total)
     }
+
+    /// UP 主音频（歌曲）列表。
+    func memberAudios(mid: Int, page: Int) async throws -> ([VideoCard], Bool) {
+        let payload: SpaceAudioResponse.Payload = try await object(
+            SpaceAudioResponse.Payload.self,
+            path: "/audio/music-service/web/song/upper",
+            query: [
+                "mid": String(mid),
+                "pn": String(max(1, page)),
+                "ps": "20",
+            ],
+            signed: false
+        )
+
+        let cards: [VideoCard] = (payload.data ?? []).compactMap { item in
+            guard let bvid = item.bvid, !bvid.isEmpty else { return nil }
+            return VideoCard(
+                bvid: bvid,
+                aid: item.aid?.value,
+                cid: item.cid?.value,
+                title: (item.title ?? "音频").removingHTMLTags,
+                coverURL: RecommendFeedResponse.Item.httpsURL(item.cover),
+                ownerName: "音频",
+                ownerFaceURL: nil,
+                duration: 0,
+                viewCount: item.statistic?.play?.value ?? 0,
+                danmakuCount: item.statistic?.comment?.value ?? 0,
+                publishedAt: item.ctime.map {
+                    Date(timeIntervalSince1970: TimeInterval($0.value))
+                }
+            )
+        }
+
+        let total = payload.totalSize?.value ?? cards.count
+        return (cards, page * 20 < total)
+    }
 }
