@@ -64,7 +64,7 @@
 | 动态评论 | `CommentsSheet(source: .dynamic)`、`dynamicComments` | ✅ type=17 分页 / 点赞 / 楼中楼 |
 | `article` | `UI/Features/Article/ArticleScreen.swift` | ✅ WKWebView 渲染 + 原生头部 |
 | 动态互动 | 卡片点赞 + `RepostSheet` 转发 | ✅ 点赞 / 转发（发布原动态 ⏳） |
-| `dynamics_create` | `ComposeDynamicSheet` + BFS 图片上传 | ✅ 纯文字 + 图文（投票 ⏳） |
+| `dynamics_create` | `ComposeDynamicSheet` + BFS 图片 + `VoteComposeSheet` | ✅ 纯文字 / 图文 / 投票 |
 | `dynamics_tab` | `DynamicFeedFilter` 分类胶囊 | ✅ 全部/视频/专栏/图文 |
 | `dynamics_topic` | `TopicScreen` / `TopicSearchSheet` + topic 接口 | ✅ 话题搜索 + 详情动态流 |
 | `article_list` | — | ⏳ |
