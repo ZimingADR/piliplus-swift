@@ -28,6 +28,8 @@ final class VideoFeedModel {
     private(set) var videos: [VideoCard] = []
     private(set) var phase: Phase = .idle
     private(set) var isLoadingMore = false
+    private(set) var rankRegionID = 0
+    private(set) var rankPeriod: RankPeriod = .all
 
     @ObservationIgnored private let client: BiliClient
     @ObservationIgnored private var page = 0
@@ -44,6 +46,12 @@ final class VideoFeedModel {
     }
 
     func refresh() async {
+        await load(reset: true)
+    }
+
+    func updateRank(regionID: Int, period: RankPeriod) async {
+        rankRegionID = regionID
+        rankPeriod = period
         await load(reset: true)
     }
 
@@ -74,7 +82,10 @@ final class VideoFeedModel {
                 page = next
                 reachedEnd = items.isEmpty
             case .rank:
-                items = try await client.rankedVideos()
+                items = try await client.rankedVideos(
+                    regionID: rankRegionID,
+                    type: rankPeriod.rawValue
+                )
                 reachedEnd = true
             }
 

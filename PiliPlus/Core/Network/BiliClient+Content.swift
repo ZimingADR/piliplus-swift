@@ -17,13 +17,13 @@ extension BiliClient {
         return (payload.list ?? []).compactMap { $0.videoCard() }
     }
 
-    func rankedVideos(regionID: Int = 0) async throws -> [VideoCard] {
+    func rankedVideos(regionID: Int = 0, type: String = "all") async throws -> [VideoCard] {
         let payload: VideoListResponse.Payload = try await object(
             VideoListResponse.Payload.self,
             path: "/x/web-interface/ranking/v2",
             query: [
                 "rid": String(regionID),
-                "type": "all",
+                "type": type,
             ],
             signed: false
         )

@@ -74,16 +74,20 @@ struct VideoFeedContent: View {
     @ViewBuilder
     private func content(_ model: VideoFeedModel) -> some View {
         if kind == .rank {
-            LazyVStack(spacing: 6) {
-                ForEach(Array(model.videos.enumerated()), id: \.element.id) { index, card in
-                    Button {
-                        onSelect(card)
-                    } label: {
-                        RankRow(rank: index + 1, card: card)
-                    }
-                    .buttonStyle(.plain)
-                    if index < model.videos.count - 1 {
-                        Divider().opacity(0.4).padding(.leading, 44)
+            VStack(alignment: .leading, spacing: 10) {
+                rankFilterBar(model)
+
+                LazyVStack(spacing: 6) {
+                    ForEach(Array(model.videos.enumerated()), id: \.element.id) { index, card in
+                        Button {
+                            onSelect(card)
+                        } label: {
+                            RankRow(rank: index + 1, card: card)
+                        }
+                        .buttonStyle(.plain)
+                        if index < model.videos.count - 1 {
+                            Divider().opacity(0.4).padding(.leading, 44)
+                        }
                     }
                 }
             }
@@ -96,6 +100,61 @@ struct VideoFeedContent: View {
                     Task { await model.loadMoreIfNeeded(current: card) }
                 }
             )
+        }
+    }
+
+    private func rankFilterBar(_ model: VideoFeedModel) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(RankRegion.all) { region in
+                        Button {
+                            guard model.rankRegionID != region.id else { return }
+                            Task { await model.updateRank(regionID: region.id, period: model.rankPeriod) }
+                        } label: {
+                            Text(region.title)
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    model.rankRegionID == region.id
+                                        ? Glass.pink.opacity(0.26)
+                                        : Color.white.opacity(0.08),
+                                    in: .capsule
+                                )
+                                .overlay {
+                                    if model.rankRegionID == region.id {
+                                        Capsule().stroke(Glass.pink.opacity(0.6), lineWidth: 1)
+                                    }
+                                }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            HStack {
+                Text("榜单周期")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Menu {
+                    ForEach(RankPeriod.allCases) { period in
+                        Button {
+                            Task { await model.updateRank(regionID: model.rankRegionID, period: period) }
+                        } label: {
+                            if period == model.rankPeriod {
+                                Label(period.title, systemImage: "checkmark")
+                            } else {
+                                Text(period.title)
+                            }
+                        }
+                    }
+                } label: {
+                    Label(model.rankPeriod.title, systemImage: "calendar")
+                        .font(.caption.weight(.semibold))
+                }
+            }
         }
     }
 }
