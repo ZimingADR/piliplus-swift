@@ -83,7 +83,8 @@
 | `live_search` | `LiveSearchSheet` + WBI search_type=live | ✅ 关键词搜索直播间 |
 | `live_area` | `LiveAreaScreen` + `/room/v1/Area/getList` | ✅ 一级分区 + 分区直播间 |
 | `live_follow` | `LiveFollowScreen` + `/xlive/web-ucenter/user/following` | ✅ 关注主播开播列表 |
-| `audio` / `music`（独立音频专区） | — | ⏳ |
+| `music`（音乐模式） | `MusicModeSheet` + 播放器菜单 | ✅ 大封面 / 进度 / ±15s / 播放控制 |
+| `audio`（独立音频专区） | — | ⏳ |
 | `subscription` / `save_panel` | — | ⏳ |
 
 ## Group 6 明细
