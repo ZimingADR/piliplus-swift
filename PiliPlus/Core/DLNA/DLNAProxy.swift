@@ -87,9 +87,7 @@ final class DLNAProxy: @unchecked Sendable {
 
     func start(upstream: URL) async throws -> URL {
         stop()
-        lock.lock()
-        self.upstream = upstream
-        lock.unlock()
+        setUpstream(upstream)
 
         guard let listener = try? NWListener(using: .tcp) else {
             throw ProxyError.listenerFailed
@@ -131,8 +129,13 @@ final class DLNAProxy: @unchecked Sendable {
         port = 0
     }
 
-    private func handle(_ connection: NWConnection) {
+    private func setUpstream(_ url: URL?) {
         lock.lock()
+        upstream = url
+        lock.unlock()
+    }
+
+    private func handle(_ connection: NWConnection) {        lock.lock()
         connections.append(connection)
         lock.unlock()
 
