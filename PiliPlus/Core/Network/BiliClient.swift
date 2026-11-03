@@ -61,6 +61,7 @@ actor BiliClient {
         case search = "https://s.search.bilibili.com"
         case passport = "https://passport.bilibili.com"
         case live = "https://api.live.bilibili.com"
+        case vc = "https://api.vc.bilibili.com"
     }
 
     static let shared = BiliClient()

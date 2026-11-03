@@ -167,6 +167,12 @@ struct MineScreen: View {
                 row(title: "离线下载", subtitle: "本地 DASH 双轨视频", systemImage: "arrow.down.circle", tint: Glass.blue)
             }
             .buttonStyle(.plain)
+            Divider().padding(.leading, 56)
+
+            NavigationLink { IMSessionListScreen() } label: {
+                row(title: "私信", subtitle: "会话与消息", systemImage: "bubble.left.and.bubble.right", tint: Glass.violet)
+            }
+            .buttonStyle(.plain)
         }
         .liquidGlass(cornerRadius: 22)
     }
