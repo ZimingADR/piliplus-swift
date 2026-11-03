@@ -81,7 +81,7 @@
 | `live_room` | `LiveRoomScreen` + MPV | ✅ FLV/HLS 直播流 |
 | `live_search` | `LiveSearchSheet` + WBI search_type=live | ✅ 关键词搜索直播间 |
 | `live_area` | `LiveAreaScreen` + `/room/v1/Area/getList` | ✅ 一级分区 + 分区直播间 |
-| `live_follow` | — | ⏳ |
+| `live_follow` | `LiveFollowScreen` + `/xlive/web-ucenter/user/following` | ✅ 关注主播开播列表 |
 | `audio` / `music`（独立音频专区） | — | ⏳ |
 | `subscription` / `save_panel` | — | ⏳ |
 
