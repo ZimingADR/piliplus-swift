@@ -41,4 +41,22 @@ struct DanmakuFilterTests {
         let items = [item("广告内容")]
         #expect(DanmakuFilter.apply(items, blockedKeywords: [" 广告 "]).isEmpty)
     }
+
+    @Test("正则屏蔽")
+    func regexBlocking() {
+        let items = [
+            item("前方高能预警", id: 1),
+            item("高能反应", id: 2),
+            item("普通弹幕", id: 3),
+        ]
+
+        let filtered = DanmakuFilter.apply(items, blockedKeywords: ["/^前方/", "/高能反应/"])
+        #expect(filtered.map(\.id) == [3])
+    }
+
+    @Test("非法正则按普通关键词处理")
+    func invalidRegexFallsBack() {
+        let items = [item("/(未闭合")]
+        #expect(DanmakuFilter.apply(items, blockedKeywords: ["/(未闭合"]).isEmpty)
+    }
 }
