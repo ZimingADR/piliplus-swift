@@ -108,7 +108,7 @@ struct SavePanelSheet: View {
             } else {
                 Image(systemName: selectedIDs.contains(folder.id) ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(selectedIDs.contains(folder.id) ? Glass.pink : .tertiary)
+                    .foregroundStyle(selectedIDs.contains(folder.id) ? Glass.pink : Color.secondary)
             }
         }
         .padding(10)
