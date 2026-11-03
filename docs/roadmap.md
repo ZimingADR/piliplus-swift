@@ -86,7 +86,7 @@
 | `music`（音乐模式） | `MusicModeSheet` + 播放器菜单 | ✅ 大封面 / 进度 / ±15s / 播放控制 |
 | `audio`（独立音频专区） | — | ⏳ |
 | `save_panel` | `SavePanelSheet` + `favoriteVideo` | ✅ 播放器内分文件夹收藏 |
-| `subscription` | — | ⏳ |
+| `subscription` | `MyBangumiScreen` + `/x/space/bangumi/follow/list` | ✅ 我的追番列表（追/取消追 ⏳） |
 
 ## Group 6 明细
 
