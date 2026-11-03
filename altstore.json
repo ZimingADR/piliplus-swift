@@ -22,9 +22,22 @@
       "category": "entertainment",
       "appPermissions": {
         "entitlements": [],
-        "privacy": {}
+        "privacy": {
+          "NSLocalNetworkUsageDescription": "用于发现并投屏到同一 Wi-Fi 下的电视或音箱。"
+        }
       },
       "versions": [
+        {
+          "version": "0.4.0",
+          "buildVersion": "5",
+          "buildNumber": "5",
+          "date": "2026-11-03T17:29:18Z",
+          "localizedDescription": "PiliPlus iOS 0.4.0 (Build 5)",
+          "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.4.0/PiliPlus-0.4.0-unsigned.ipa",
+          "size": 14017793,
+          "sha256": "aa23ee6b9aa5bb58fca2bc395166979de3b3109c035f5f4dc56cb4a5e9da68f9",
+          "minOSVersion": "27.1"
+        },
         {
           "version": "0.3.0",
           "buildVersion": "4",
@@ -70,11 +83,11 @@
           "minOSVersion": "18.0"
         }
       ],
-      "version": "0.3.0",
-      "versionDate": "2026-11-02T15:53:37Z",
-      "versionDescription": "PiliPlus iOS 0.3.0 (Build 4)",
-      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.3.0/PiliPlus-0.3.0-unsigned.ipa",
-      "size": 13662795
+      "version": "0.4.0",
+      "versionDate": "2026-11-03T17:29:18Z",
+      "versionDescription": "PiliPlus iOS 0.4.0 (Build 5)",
+      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.4.0/PiliPlus-0.4.0-unsigned.ipa",
+      "size": 14017793
     }
   ],
   "news": []
