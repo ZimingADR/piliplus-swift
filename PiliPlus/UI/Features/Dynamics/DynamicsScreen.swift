@@ -16,6 +16,7 @@ struct DynamicsScreen: View {
     @State private var repostTarget: DynamicItem?
     @State private var actionError: String?
     @State private var showsCompose = false
+    @State private var showsVoteCompose = false
     @State private var filter: DynamicFeedFilter = .all
 
     var body: some View {
@@ -44,6 +45,11 @@ struct DynamicsScreen: View {
         .sheet(isPresented: $showsLogin) { LoginScreen() }
         .sheet(isPresented: $showsCompose) {
             ComposeDynamicSheet {
+                Task { await model?.loadInitial(force: true) }
+            }
+        }
+        .sheet(isPresented: $showsVoteCompose) {
+            VoteComposeSheet {
                 Task { await model?.loadInitial(force: true) }
             }
         }
@@ -79,14 +85,32 @@ struct DynamicsScreen: View {
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            GlassIconButton(systemName: "square.and.pencil") {
-                guard environment.account.isLoggedIn else {
-                    showsLogin = true
-                    return
+            Menu {
+                Button {
+                    guard environment.account.isLoggedIn else {
+                        showsLogin = true
+                        return
+                    }
+                    showsCompose = true
+                } label: {
+                    Label("发图文动态", systemImage: "square.and.pencil")
                 }
-                showsCompose = true
+
+                Button {
+                    guard environment.account.isLoggedIn else {
+                        showsLogin = true
+                        return
+                    }
+                    showsVoteCompose = true
+                } label: {
+                    Label("发起投票", systemImage: "chart.bar.doc.horizontal")
+                }
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(Glass.pink)
             }
-            .accessibilityLabel("发布动态")
+            .accessibilityLabel("发布")
             GlassIconButton(systemName: "arrow.clockwise") {
                 Task { await model?.loadInitial(force: true) }
             }

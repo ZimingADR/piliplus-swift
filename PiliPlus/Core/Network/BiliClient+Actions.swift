@@ -77,6 +77,31 @@ extension BiliClient {
         )
     }
 
+    func createVote(_ payload: VoteCreatePayload) async throws -> Int {
+        guard let json = payload.jsonString else {
+            throw BiliAPIError(code: -400, message: "投票内容编码失败")
+        }
+        guard let csrf = csrfToken() else {
+            throw BiliAPIError(code: -101, message: "请先登录")
+        }
+
+        let data = try await postForm(
+            "/x/vote/create",
+            form: [
+                "vote_info": json,
+                "csrf": csrf,
+            ]
+        )
+        let response = try JSONDecoder().decode(VoteCreateResponse.self, from: data)
+        guard response.code == 0, let voteID = response.data?.voteID?.value else {
+            throw BiliAPIError(
+                code: response.code,
+                message: response.message ?? "创建投票失败"
+            )
+        }
+        return voteID
+    }
+
     private func performFormAction(
         _ path: String,
         form: [String: String]
