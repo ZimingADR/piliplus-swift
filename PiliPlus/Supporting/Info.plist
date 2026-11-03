@@ -42,6 +42,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>用于发现并投屏到同一 Wi-Fi 下的电视或音箱。</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>PiliPlus contributors. 本项目仅供学习交流使用。</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

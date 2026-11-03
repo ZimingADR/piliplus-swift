@@ -88,4 +88,19 @@ struct DLNATests {
         #expect(body.contains("<Speed>1</Speed>"))
         #expect(DLNACastService.escape("a&b") == "a&amp;b")
     }
+
+    @Test("代理请求 Range 头与响应头")
+    func proxyHTTP() throws {
+        let request = "GET /cast HTTP/1.1\r\nHost: 192.168.1.2:1234\r\nRange: bytes=100-200\r\n\r\n"
+        #expect(DLNAProxyHTTP.requestRange(request) == "bytes=100-200")
+
+        let head = DLNAProxyHTTP.responseHead(
+            status: 206,
+            headers: [("Content-Type", "video/mp4"), ("Content-Length", "100")]
+        )
+        let text = try #require(String(data: head, encoding: .utf8))
+        #expect(text.contains("HTTP/1.1 206 Partial Content"))
+        #expect(text.contains("Content-Length: 100"))
+        #expect(text.hasSuffix("\r\n\r\n"))
+    }
 }

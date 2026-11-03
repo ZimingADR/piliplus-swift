@@ -14,6 +14,7 @@ struct DLNAScreen: View {
     @State private var castingDeviceID: String?
     @State private var castMessage: String?
     @State private var castError: String?
+    @State private var proxy: DLNAProxy?
 
     private let discovery = DLNADiscovery()
 
@@ -44,6 +45,7 @@ struct DLNAScreen: View {
                 }
             }
             .task { await scan() }
+            .onDisappear { proxy?.stop() }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -153,16 +155,24 @@ struct DLNAScreen: View {
         castMessage = nil
         castError = nil
         do {
-            guard let url = await loadCastURL() else {
+            guard let remoteURL = await loadCastURL() else {
                 throw DLNACastService.CastError.unsupported
             }
+
+            let proxy = DLNAProxy()
+            let localURL = try await proxy.start(upstream: remoteURL)
+            self.proxy?.stop()
+            self.proxy = proxy
+
             try await DLNACastService.cast(
                 device: device,
-                videoURL: url,
+                videoURL: localURL,
                 title: mediaTitle.isEmpty ? "PiliPlus" : mediaTitle
             )
-            castMessage = "已发送到 \(device.name)"
+            castMessage = "已通过本机代理发送到 \(device.name)"
         } catch {
+            proxy?.stop()
+            proxy = nil
             castError = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
         }
         castingDeviceID = nil
