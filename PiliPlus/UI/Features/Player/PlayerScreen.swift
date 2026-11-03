@@ -48,6 +48,7 @@ struct PlayerScreen: View {
         case login
         case ai
         case dlna
+        case music
 
         var id: String { rawValue }
     }
@@ -184,6 +185,12 @@ struct PlayerScreen: View {
                     controller.isAudioOnly ? "恢复视频" : "仅音频",
                     systemImage: controller.isAudioOnly ? "tv" : "waveform"
                 )
+            }
+
+            Button {
+                activeSheet = .music
+            } label: {
+                Label("音乐模式", systemImage: "music.note")
             }
 
             Button {
@@ -507,6 +514,8 @@ struct PlayerScreen: View {
                 DLNAScreen(mediaTitle: controller.title) {
                     await controller.castURL()
                 }
+            case .music:
+                MusicModeSheet(controller: controller)
             }
         }
     }
