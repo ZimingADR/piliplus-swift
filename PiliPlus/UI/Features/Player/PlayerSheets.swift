@@ -120,6 +120,8 @@ struct DanmakuSettingsSheet: View {
                         }
                         .disabled(newBlockedKeyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
+                } footer: {
+                    Text("普通关键词忽略大小写；用 /正则/ 可做更灵活的匹配。")
                 }
 
                 Section {
