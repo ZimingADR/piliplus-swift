@@ -7,6 +7,8 @@ struct DLNADevice: Identifiable, Hashable, Sendable {
     let location: URL
     let deviceType: String
     let modelName: String
+    let controlURL: URL?
+    let avTransportType: String?
 }
 
 enum SSDPMessage {
@@ -40,6 +42,8 @@ enum DLNADescription {
         let name: String
         let deviceType: String
         let modelName: String
+        let avTransportType: String?
+        let avTransportControlURL: String?
     }
 
     static func parse(_ data: Data) -> Info? {
@@ -53,7 +57,9 @@ enum DLNADescription {
         return Info(
             name: name,
             deviceType: delegate.deviceType,
-            modelName: delegate.modelName
+            modelName: delegate.modelName,
+            avTransportType: delegate.avTransportType.isEmpty ? nil : delegate.avTransportType,
+            avTransportControlURL: delegate.avTransportControl.isEmpty ? nil : delegate.avTransportControl
         )
     }
 
@@ -61,7 +67,13 @@ enum DLNADescription {
         var friendlyName = ""
         var deviceType = ""
         var modelName = ""
+        var avTransportType = ""
+        var avTransportControl = ""
+
         private var current = ""
+        private var inService = false
+        private var serviceType = ""
+        private var serviceControlURL = ""
 
         func parser(
             _ parser: XMLParser,
@@ -71,6 +83,11 @@ enum DLNADescription {
             attributes attributeDict: [String: String]
         ) {
             current = elementName
+            if elementName == "service" {
+                inService = true
+                serviceType = ""
+                serviceControlURL = ""
+            }
         }
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -80,6 +97,14 @@ enum DLNADescription {
             case "modelName": modelName += string
             default: break
             }
+
+            if inService {
+                switch current {
+                case "serviceType": serviceType += string
+                case "controlURL": serviceControlURL += string
+                default: break
+                }
+            }
         }
 
         func parser(
@@ -88,6 +113,13 @@ enum DLNADescription {
             namespaceURI: String?,
             qualifiedName qName: String?
         ) {
+            if elementName == "service" {
+                if serviceType.contains("AVTransport") {
+                    avTransportType = serviceType.trimmingCharacters(in: .whitespacesAndNewlines)
+                    avTransportControl = serviceControlURL.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                inService = false
+            }
             current = ""
         }
     }
@@ -151,12 +183,17 @@ final class DLNADiscovery: @unchecked Sendable {
         return locations.compactMap { location -> DLNADevice? in
             guard let data = try? Data(contentsOf: location),
                   let info = DLNADescription.parse(data) else { return nil }
+            let control = info.avTransportControlURL.flatMap {
+                URL(string: $0, relativeTo: location)?.absoluteURL
+            }
             return DLNADevice(
                 id: location.absoluteString,
                 name: info.name,
                 location: location,
                 deviceType: info.deviceType,
-                modelName: info.modelName
+                modelName: info.modelName,
+                controlURL: control,
+                avTransportType: info.avTransportType
             )
         }
         .sorted { $0.name < $1.name }

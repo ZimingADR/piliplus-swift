@@ -2,12 +2,18 @@ import SwiftUI
 
 /// DLNA 投屏：局域网设备发现（当前只做发现与展示）。
 struct DLNAScreen: View {
+    var mediaTitle: String = ""
+    var loadCastURL: (() async -> URL?)? = nil
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var devices: [DLNADevice] = []
     @State private var isScanning = false
     @State private var hasScanned = false
     @State private var errorMessage: String?
+    @State private var castingDeviceID: String?
+    @State private var castMessage: String?
+    @State private var castError: String?
 
     private let discovery = DLNADiscovery()
 
@@ -65,11 +71,22 @@ struct DLNAScreen: View {
         } else {
             ScrollView {
                 LazyVStack(spacing: 10) {
+                    if let castMessage {
+                        Label(castMessage, systemImage: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                    if let castError {
+                        Label(castError, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+
                     ForEach(devices) { device in
                         deviceRow(device)
                     }
 
-                    Text("设备发现已完成。视频投屏代理将在后续版本接入。")
+                    Text("投屏使用设备的 AVTransport 服务；若设备无法直接访问 B 站 CDN，可等待后续版本的内置代理。")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .padding(.top, 6)
@@ -106,9 +123,49 @@ struct DLNAScreen: View {
             }
 
             Spacer(minLength: 0)
+
+            if device.controlURL != nil, loadCastURL != nil {
+                Button {
+                    Task { await cast(device) }
+                } label: {
+                    if castingDeviceID == device.id {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Text("投屏")
+                            .font(.caption.weight(.semibold))
+                    }
+                }
+                .buttonStyle(GlassButtonStyle(tint: Glass.pink, cornerRadius: 12))
+                .disabled(castingDeviceID != nil)
+            } else {
+                Text("不支持")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
         }
         .padding(12)
         .liquidGlass(cornerRadius: 16, elevation: 0.6)
+    }
+
+    private func cast(_ device: DLNADevice) async {
+        guard let loadCastURL else { return }
+        castingDeviceID = device.id
+        castMessage = nil
+        castError = nil
+        do {
+            guard let url = await loadCastURL() else {
+                throw DLNACastService.CastError.unsupported
+            }
+            try await DLNACastService.cast(
+                device: device,
+                videoURL: url,
+                title: mediaTitle.isEmpty ? "PiliPlus" : mediaTitle
+            )
+            castMessage = "已发送到 \(device.name)"
+        } catch {
+            castError = (error as? any LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+        castingDeviceID = nil
     }
 
     private func scan() async {

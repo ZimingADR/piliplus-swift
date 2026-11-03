@@ -520,6 +520,16 @@ final class PlaybackController {
         saveProgress(force: true)
     }
 
+    /// 生成用于 DLNA 投屏的完整 MP4 地址。
+    func castURL() async -> URL? {
+        guard let detail, let page = currentPage else { return nil }
+        return try? await client.muxedPlayURL(
+            bvid: detail.bvid,
+            aid: detail.aid,
+            cid: page.cid
+        )
+    }
+
     func seek(to seconds: Double) {
         let target = min(max(seconds, 0), max(duration - 0.5, 0))
         engine.seek(to: target)

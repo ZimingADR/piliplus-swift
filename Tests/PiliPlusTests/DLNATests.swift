@@ -43,4 +43,49 @@ struct DLNATests {
         #expect(SSDPMessage.location(from: Data("not ssdp".utf8)) == nil)
         #expect(DLNADescription.parse(Data("<root></root>".utf8)) == nil)
     }
+
+    @Test("解析 AVTransport 服务与 controlURL")
+    func parsesAVTransport() throws {
+        let xml = """
+        <?xml version="1.0"?>
+        <root>
+          <device>
+            <deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
+            <friendlyName>客厅电视</friendlyName>
+            <serviceList>
+              <service>
+                <serviceType>urn:schemas-upnp-org:service:AVTransport:1</serviceType>
+                <controlURL>/upnp/control/AVTransport1</controlURL>
+              </service>
+            </serviceList>
+          </device>
+        </root>
+        """
+        let info = try #require(DLNADescription.parse(Data(xml.utf8)))
+        #expect(info.avTransportType?.contains("AVTransport") == true)
+        #expect(info.avTransportControlURL == "/upnp/control/AVTransport1")
+    }
+
+    @Test("SOAP SetAVTransportURI 转义与内容")
+    func soapBody() {
+        let url = URL(string: "https://example.com/video.mp4?a=1&b=2")!
+        let body = DLNACastService.setAVTransportURIBody(
+            serviceType: "urn:schemas-upnp-org:service:AVTransport:1",
+            videoURL: url,
+            title: "标题 & <测试>"
+        )
+        #expect(body.contains("SetAVTransportURI"))
+        #expect(body.contains("标题 &amp; &lt;测试&gt;"))
+        #expect(body.contains("a=1&amp;b=2"))
+    }
+
+    @Test("SOAP Play 与转义")
+    func soapPlay() {
+        let body = DLNACastService.playBody(
+            serviceType: "urn:schemas-upnp-org:service:AVTransport:1"
+        )
+        #expect(body.contains("<u:Play"))
+        #expect(body.contains("<Speed>1</Speed>"))
+        #expect(DLNACastService.escape("a&b") == "a&amp;b")
+    }
 }

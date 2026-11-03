@@ -504,7 +504,9 @@ struct PlayerScreen: View {
                     }
                 }
             case .dlna:
-                DLNAScreen()
+                DLNAScreen(mediaTitle: controller.title) {
+                    await controller.castURL()
+                }
             }
         }
     }
