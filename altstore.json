@@ -28,6 +28,17 @@
       },
       "versions": [
         {
+          "version": "0.4.1",
+          "buildVersion": "6",
+          "buildNumber": "6",
+          "date": "2026-11-03T18:53:14Z",
+          "localizedDescription": "PiliPlus iOS 0.4.1 (Build 6)",
+          "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.4.1/PiliPlus-0.4.1-unsigned.ipa",
+          "size": 14042591,
+          "sha256": "ed641b3cb85d8ae749e82eb0c7cf8ee8cf208917ec98fb52f4a37e3b425358dc",
+          "minOSVersion": "27.1"
+        },
+        {
           "version": "0.4.0",
           "buildVersion": "5",
           "buildNumber": "5",
@@ -83,11 +94,11 @@
           "minOSVersion": "18.0"
         }
       ],
-      "version": "0.4.0",
-      "versionDate": "2026-11-03T17:29:18Z",
-      "versionDescription": "PiliPlus iOS 0.4.0 (Build 5)",
-      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.4.0/PiliPlus-0.4.0-unsigned.ipa",
-      "size": 14017793
+      "version": "0.4.1",
+      "versionDate": "2026-11-03T18:53:14Z",
+      "versionDescription": "PiliPlus iOS 0.4.1 (Build 6)",
+      "downloadURL": "https://github.com/ZimingADR/piliplus-swift/releases/download/v0.4.1/PiliPlus-0.4.1-unsigned.ipa",
+      "size": 14042591
     }
   ],
   "news": []
