@@ -1,0 +1,27 @@
+name: Probe APIs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Bilibili audio endpoints
+        run: |
+          UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+          for url in \
+            "https://api.bilibili.com/audio/music-service/web/wave/recommend?page=1&page_size=5" \
+            "https://api.bilibili.com/audio/music-service/web/wave/home" \
+            "https://api.bilibili.com/audio/music-service/web/rank/list?type=1" \
+            "https://api.bilibili.com/audio/music-service/web/song/list?sid=1"
+          do
+            echo "=== $url"
+            code=$(curl -s -o /tmp/body.json -w "%{http_code}" \
+              -H "User-Agent: $UA" \
+              -H "Referer: https://www.bilibili.com/" \
+              "$url")
+            echo "HTTP $code"
+            head -c 500 /tmp/body.json
+            echo
+          done
