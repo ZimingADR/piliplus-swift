@@ -96,7 +96,7 @@ struct DanmakuSettingsSheet: View {
                     )
                 }
 
-                Section("屏蔽词") {
+                Section {
                     ForEach(settings.danmakuBlockedKeywords, id: \.self) { keyword in
                         HStack {
                             Text(keyword)
@@ -120,6 +120,8 @@ struct DanmakuSettingsSheet: View {
                         }
                         .disabled(newBlockedKeyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
+                } header: {
+                    Text("屏蔽词")
                 } footer: {
                     Text("普通关键词忽略大小写；用 /正则/ 可做更灵活的匹配。")
                 }
