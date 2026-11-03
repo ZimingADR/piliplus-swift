@@ -48,6 +48,7 @@
 | `member_article` | `MemberArticlesScreen` + WBI/旧接口回退 | ✅ UP 主专栏列表 → 阅读 |
 | `member_series` | `MemberCollectionsScreen` + `seasons_series_list` | ✅ UP 主合集/系列列表 |
 | `member_like_arc` | `MemberLikedScreen` + `/x/v2/space/likearc` | ✅ 最近点赞视频 |
+| `member_audio` | `MemberAudioScreen` + `/audio/music-service/web/song/upper` | ✅ UP 主音频列表 |
 | `member_profile` 等 | — | ⏳ |
 | `member_search` | `MemberSearchSheet` + WBI search_type=bili_user | ✅ 昵称搜索 → UP 主主页 |
 | `popular_precious` | `PreciousScreen` + `BiliClient.preciousVideos` | ✅ 入站必刷分页 |
@@ -81,7 +82,7 @@
 | `live_search` | `LiveSearchSheet` + WBI search_type=live | ✅ 关键词搜索直播间 |
 | `live_area` | `LiveAreaScreen` + `/room/v1/Area/getList` | ✅ 一级分区 + 分区直播间 |
 | `live_follow` | — | ⏳ |
-| `audio` / `music` | — | ⏳ |
+| `audio` / `music`（独立音频专区） | — | ⏳ |
 | `subscription` / `save_panel` | — | ⏳ |
 
 ## Group 6 明细
